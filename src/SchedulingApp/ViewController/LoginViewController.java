@@ -7,14 +7,19 @@ import SchedulingApp.DataBase.DBConnection;
 import SchedulingApp.Exceptions.UserFieldsEmptyException;
 import SchedulingApp.Exceptions.UserNotValidException;
 import SchedulingApp.Models.User;
+import SchedulingApp.Views.MainView;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.stage.Stage;
 
 
 import java.sql.PreparedStatement;
@@ -34,7 +39,6 @@ public class LoginViewController {
             user = validateLogin(user);
             State.setUser(user);
         } catch (UserFieldsEmptyException | UserNotValidException ex) {
-            //TODO: Handle different Laguages in error dialog
             loginViewLogger.log(Level.INFO, ex.getMessage());
             throw ex;
         }

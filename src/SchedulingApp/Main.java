@@ -4,6 +4,7 @@ import SchedulingApp.AppState.ScheduleLogger;
 import SchedulingApp.DataBase.DBConnection;
 import SchedulingApp.ViewController.LoginViewController;
 import SchedulingApp.Views.LoginView;
+import SchedulingApp.Views.MainView;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -17,9 +18,12 @@ public class Main extends Application {
 
 
 
-        LoginViewController loginViewController = new LoginViewController();
+        /*LoginViewController loginViewController = new LoginViewController();
         LoginView loginView = new LoginView(loginViewController);
-        Scene scene = new Scene(loginView.getView());
+        Scene scene = new Scene(loginView.getView());*/
+
+        MainView mainView = new MainView();
+        Scene scene = new Scene(mainView.getView());
 
         primaryStage.setScene(scene);
         primaryStage.show();

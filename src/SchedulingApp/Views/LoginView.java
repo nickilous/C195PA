@@ -9,9 +9,12 @@ import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -22,6 +25,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 
 import javax.lang.model.AnnotatedConstruct;
 import java.awt.*;
@@ -131,6 +135,15 @@ public class LoginView {
         btLogin.setOnAction((event) -> {
             try {
                 controller.handleLogin(userName.getText(), password.getText());
+
+                MainView mainView = new MainView();
+                Parent mainViewParent = mainView.getView();
+                Scene mainViewScene = new Scene(mainViewParent);
+                Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
+                winAddProduct.setTitle("Main Screen");
+                winAddProduct.setScene(mainViewScene);
+                winAddProduct.show();
+
             } catch (UserFieldsEmptyException | UserNotValidException ex){
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.titleProperty().bind(RESOURCE_FACTORY.getStringBinding("loginErrorTitle"));

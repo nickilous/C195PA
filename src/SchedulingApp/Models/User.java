@@ -3,10 +3,18 @@ package SchedulingApp.Models;
 
 import SchedulingApp.Exceptions.UserFieldsEmptyException;
 
+import java.sql.Date;
+import java.sql.Timestamp;
+
 public class User {
     String userName;
     String password;
     int userID;
+    int active;
+    Date createDate;
+    User createdBy;
+    Timestamp lastUpdate;
+    User lastUpdatedBy;
 
     public User(){
         this.userName = "";

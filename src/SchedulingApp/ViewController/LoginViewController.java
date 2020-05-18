@@ -4,6 +4,7 @@ package SchedulingApp.ViewController;
 import SchedulingApp.AppState.ScheduleLogger;
 import SchedulingApp.AppState.State;
 import SchedulingApp.DataBase.DBConnection;
+import SchedulingApp.DataBase.DataBaseManager;
 import SchedulingApp.Exceptions.UserFieldsEmptyException;
 import SchedulingApp.Exceptions.UserNotValidException;
 import SchedulingApp.Models.User;
@@ -36,7 +37,7 @@ public class LoginViewController {
                             String password) throws UserFieldsEmptyException, UserNotValidException {
         try {
             User user = new User(userName, password);
-            user = validateLogin(user);
+            DataBaseManager.validateLogin(user);
             State.setUser(user);
         } catch (UserFieldsEmptyException | UserNotValidException ex) {
             loginViewLogger.log(Level.INFO, ex.getMessage());
@@ -44,29 +45,7 @@ public class LoginViewController {
         }
         loginViewLogger.log(Level.INFO, "User logged in");
     }
-    /**
-     * Searches for matching username and password in database
-     * @param user
-     * @return user if match found
-     */
-    User validateLogin(User user) throws UserNotValidException {
-        try{
-            PreparedStatement pst = DBConnection.getConnection().prepareStatement("SELECT * FROM user WHERE userName=? AND password=?");
-            pst.setString(1, user.getUserName());
-            pst.setString(2, user.getPassword());
-            ResultSet rs = pst.executeQuery();
-            if(rs.next()){
-                user.setUserName(rs.getString("userName"));
-                user.setPassword(rs.getString("password"));
-                user.setUserID(rs.getInt("userId"));
-            } else {
-                throw new UserNotValidException("User not found in DB.");
-            }
-        } catch(SQLException e){
-            e.printStackTrace();
-        }
-        return user;
-    }
+
     public void handleCancel(){
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Cancel");

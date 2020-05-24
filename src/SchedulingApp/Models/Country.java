@@ -1,15 +1,24 @@
 package SchedulingApp.Models;
 
-import javafx.beans.property.SimpleIntegerProperty;
-
-import java.sql.Date;
-import java.sql.Timestamp;
 
 public class Country {
     int countryId;
     String country;
-    Date createDate;
-    User createdBy;
-    Timestamp lastUpdate;
-    User lastUpdatedBy;
+
+
+    public int getCountryId() {
+        return countryId;
+    }
+
+    public void setCountryId(int countryId) {
+        this.countryId = countryId;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
 }

@@ -1,6 +1,7 @@
 package SchedulingApp;
 
 import SchedulingApp.AppState.ScheduleLogger;
+import SchedulingApp.AppState.State;
 import SchedulingApp.DataBase.DBConnection;
 import SchedulingApp.ViewController.LoginViewController;
 import SchedulingApp.Views.LoginView;
@@ -18,12 +19,12 @@ public class Main extends Application {
 
 
 
-        /*LoginViewController loginViewController = new LoginViewController();
+        LoginViewController loginViewController = new LoginViewController();
         LoginView loginView = new LoginView(loginViewController);
-        Scene scene = new Scene(loginView.getView());*/
+        Scene scene = new Scene(loginView.getView());
 
-        MainView mainView = new MainView();
-        Scene scene = new Scene(mainView.getView());
+        /*MainView mainView = new MainView();
+        Scene scene = new Scene(mainView.getView());*/
 
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -36,7 +37,15 @@ public class Main extends Application {
          * By passing the lambda into and new thread the loading of the app shouldn't hang
          * and will create a separate thread for the DBConnection to be made on.
          */
-        new Thread(() -> DBConnection.makeConnection()).start();
+        new Thread(() -> {
+            DBConnection.makeConnection();
+            State.loadAddress();
+            State.loadCities();
+            State.loadCountries();
+            State.loadCustomers();
+        }).start();
+
+
         ScheduleLogger.init();
         launch(args);
         DBConnection.closeConnection();

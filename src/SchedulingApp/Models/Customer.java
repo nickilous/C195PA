@@ -1,5 +1,7 @@
 package SchedulingApp.Models;
 
+import SchedulingApp.Exceptions.UserFieldsEmptyException;
+
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.Locale;
@@ -10,10 +12,10 @@ public class Customer {
     String customerName;
     int addressId;
     int active;
-    Date createDate;
-    User createdBy;
-    Timestamp lastUpdate;
-    User lastUpdatedBy;
+
+    public Customer(){
+
+    }
 
     public int getCustomerId() {
         return customerId;
@@ -47,61 +49,30 @@ public class Customer {
         this.active = active;
     }
 
-    public Date getCreateDate() {
-        return createDate;
-    }
-
-    public void setCreateDate(Date createDate) {
-        this.createDate = createDate;
-    }
-
-    public User getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(User createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Timestamp getLastUpdate() {
-        return lastUpdate;
-    }
-
-    public void setLastUpdate(Timestamp lastUpdate) {
-        this.lastUpdate = lastUpdate;
-    }
-
-    public User getLastUpdatedBy() {
-        return lastUpdatedBy;
-    }
-
-    public void setLastUpdatedBy(User lastUpdatedBy) {
-        this.lastUpdatedBy = lastUpdatedBy;
-    }
-
     // Validation
-    public static String isCustomerValid(String customerName, String address, String city,
-                                         String country, String postalCode, String phone) {
-        ResourceBundle rb = ResourceBundle.getBundle("Customer", Locale.getDefault());
+    public static void isCustomerValid(String customerName, String address, String city,
+                                         String country, String postalCode, String phone) throws UserFieldsEmptyException {
         String errorMessage = "";
         if (customerName.length() == 0) {
-            errorMessage = errorMessage + rb.getString("errorCustomerName");
-        }
+            errorMessage = errorMessage + "Customer Name Field Empty";
+        } else
         if (address.length() == 0) {
-            errorMessage = errorMessage + rb.getString("errorAddress");
-        }
+            errorMessage = errorMessage + "Address Field Empty";
+        } else
         if (city.length() == 0) {
-            errorMessage = errorMessage + rb.getString("errorCity");
-        }
+            errorMessage = errorMessage + "City Not Selected";
+        } else
         if (country.length() == 0) {
-            errorMessage = errorMessage + rb.getString("errorCountry");
-        }
+            errorMessage = errorMessage + "Country Not Selected";
+        } else
         if (postalCode.length() == 0) {
-            errorMessage = errorMessage + rb.getString("errorPostalCode");
-        }
+            errorMessage = errorMessage + "Postal Code Field Empty";
+        } else
         if (phone.length() == 0) {
-            errorMessage = errorMessage + rb.getString("errorPhone");
+            errorMessage = errorMessage + "Phone Field Empty";
         }
-        return errorMessage;
+        if (!errorMessage.isEmpty()){
+            throw new UserFieldsEmptyException(errorMessage);
+        }
     }
 }

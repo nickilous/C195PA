@@ -1,11 +1,19 @@
 package SchedulingApp.Views;
 
-import com.mysql.cj.xdevapi.Column;
+import SchedulingApp.AppState.State;
+import SchedulingApp.Models.Address;
+import SchedulingApp.Models.Customer;
+import SchedulingApp.ViewController.AddCustomerViewController;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
+import javafx.stage.Stage;
 
 public class MainView {
     AnchorPane mainAnchorPane = new AnchorPane();
@@ -16,7 +24,11 @@ public class MainView {
 
     HBox toggleButtonsHBox = new HBox();
 
-    TableView calendarGridPane = new TableView();
+    TableView<Customer> tvCustomers = new TableView();
+    TableColumn customerId = new TableColumn("Customer ID");
+    TableColumn customerName = new TableColumn("Customer Name");
+
+    TableColumn address = new TableColumn("Address");
 
     ToggleButton monthToggleButton = new ToggleButton();
     ToggleButton weekToggleButton = new ToggleButton();
@@ -47,12 +59,13 @@ public class MainView {
         mainBorderPane.prefHeight(mainAnchorPane.getPrefHeight());
 
         mainBorderPane.setTop(toggleButtonsHBox);
-        mainBorderPane.setCenter(calendarGridPane);
+        mainBorderPane.setCenter(tvCustomers);
 
 
         setupTopBorderPane();
         setupLeftBorderPane();
         setupTitlePanes();
+        setupTV();
 
         setupButtonsUI();
     }
@@ -136,7 +149,14 @@ public class MainView {
         });
 
         addCustomerButton.setOnAction((event) -> {
-            //TODO
+            AddCustomerViewController addCustomerViewController = new AddCustomerViewController();
+            AddCustomerView addCustomerView = new AddCustomerView(addCustomerViewController);
+            Parent addCustomerViewParent = addCustomerView.getView();
+            Scene mainViewScene = new Scene(addCustomerViewParent);
+            Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
+            winAddProduct.setTitle("Add Customer");
+            winAddProduct.setScene(mainViewScene);
+            winAddProduct.show();
         });
         updateCustomerButton.setOnAction((event) -> {
             //TODO
@@ -146,8 +166,21 @@ public class MainView {
         });
 
     }
+    public void setupTV(){
+        tvCustomers.setPrefWidth(400);
+        tvCustomers.getColumns().addAll(customerId, customerName, address);
+        setupTVCol();
+    }
     public Parent getView(){
         return mainAnchorPane;
+    }
+    public void setupTVCol() {
+
+        customerId.setCellValueFactory(new PropertyValueFactory<Customer, Integer>("customerId"));
+        customerName.setCellValueFactory(new PropertyValueFactory<Customer, String>("customerName"));
+
+        State.loadCustomers();
+        tvCustomers.setItems(State.getCustomers());
     }
 }
 

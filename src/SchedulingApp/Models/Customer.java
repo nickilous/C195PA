@@ -1,5 +1,6 @@
 package SchedulingApp.Models;
 
+import SchedulingApp.DataBase.DataBaseManager;
 import SchedulingApp.Exceptions.UserFieldsEmptyException;
 
 import java.sql.Date;
@@ -9,12 +10,26 @@ import java.util.ResourceBundle;
 
 public class Customer {
     int customerId;
-    String customerName;
-    int addressId;
     int active;
+    int addressId;
+    int cityId;
+    int countryId;
+
+
+    String customerName;
+    String address;
+    String address2;
+    String postalCode;
+    String phone;
+    String city;
+    String country;
+
 
     public Customer(){
-
+        customerId = DataBaseManager.getNextId("customer");
+    }
+    public Customer(int customerId){
+        this.customerId = customerId;
     }
 
     public int getCustomerId() {
@@ -47,6 +62,70 @@ public class Customer {
 
     public void setActive(int active) {
         this.active = active;
+    }
+
+    public int getCityId() {
+        return cityId;
+    }
+
+    public void setCityId(int cityId) {
+        this.cityId = cityId;
+    }
+
+    public int getCountryId() {
+        return countryId;
+    }
+
+    public void setCountryId(int countryId) {
+        this.countryId = countryId;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getAddress2() {
+        return address2;
+    }
+
+    public void setAddress2(String address2) {
+        this.address2 = address2;
+    }
+
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
     }
 
     // Validation

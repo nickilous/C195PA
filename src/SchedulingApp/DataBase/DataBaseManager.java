@@ -116,22 +116,22 @@ public class DataBaseManager {
      * @return the next available id in the table with the specific city, country
      */
     public static int getId(String table, String searchKey){
-        int countryId = 0;
+        int id = 0;
         try{
             PreparedStatement pst = DBConnection.getConnection().prepareStatement("SELECT * " +
                     "FROM " + table +
                     "WHERE " + table + " = '" + searchKey + "'");
             ResultSet rs = pst.executeQuery();
             if (rs.next()) {
-                countryId = rs.getInt(table + "Id");
+                id = rs.getInt(table + "Id");
             } else {
-                countryId = getNextId(table);
+                id = getNextId(table);
             }
             rs.close();
         } catch (SQLException ex){
             //TODO: add print statement here
         }
-        return countryId;
+        return id;
     }
 
     public static ResultSet getAllCustomerData(){
@@ -161,50 +161,55 @@ public class DataBaseManager {
         return rs;
     }
 
-    public static void updateCustomerName(Customer customer){
+    public static void updateCustomerData(Customer customer){
         try{
             PreparedStatement pst = DBConnection.getConnection().prepareStatement("UPDATE customer " +
-                    "SET customer.customerName=" + customer.getCustomerName() + " " +
-                    "WHERE customer.customerId=" + customer.getCustomerId() + ";");
+                    "SET customer.customerName=?, " +
+                    "customer.addressId=? " +
+                    "WHERE customer.customerId=?;");
+            pst.setString(1,customer.getCustomerName());
+            pst.setInt(2, customer.getAddressId());
+            pst.setInt(3, customer.getCustomerId());
+            pst.executeUpdate();
         } catch (SQLException ex){
 
         }
     }
-    /*public static void updateCustomerAddress(Customer customer){
-        *//**
+    public static void updateCustomerAddress(Customer customer){
+        /**
          * Update address
-         *//*
+         */
         try{
             PreparedStatement pst = DBConnection.getConnection().prepareStatement("UPDATE address " +
                     "SET address.address=" + customer.getAddress() + ", " +
-                    "address.address2=" + customer.getAddress().getAddress2() + ", " +
-                    "address.phone=" + customer.getAddress().getPhone() + " " +
-                    "address.postalCode= " + customer.getAddress().getPostalCode() + " " +
-                    "address.cityId=" + customer.getAddress().getCity().getCityId() + " " +
-                    "WHERE addressId=" + customer.getAddress().getAddressId() + ";");
+                    "address.address2=" + customer.getAddress2() + ", " +
+                    "address.phone=" + customer.getPhone() + " " +
+                    "address.postalCode= " + customer.getPostalCode() + " " +
+                    "address.cityId=" + customer.getCity() + " " +
+                    "WHERE addressId=" + customer.getAddressId() + ";");
         } catch (SQLException ex){
             System.out.println(ex.getMessage());
         }
-        *//**
+        /**
          * Update city
          *
-         *//*
+         */
 
         try{
             PreparedStatement pst = DBConnection.getConnection().prepareStatement("UPDATE city " +
-                    "SET city.address=" + customer.getAddress().getAddress() + ", " +
-                    "address.address2=" + customer.getAddress().getAddress2() + ", " +
-                    "address.phone=" + customer.getAddress().getPhone() + " " +
-                    "address.postalCode= " + customer.getAddress().getPostalCode() + " " +
-                    "WHERE addressId=" + customer.getAddress().getAddressId() + ";");
+                    "SET city.city=" + customer.getCity()+ ", " +
+                    "address.address2=" + customer.getAddress() + ", " +
+                    "address.phone=" + customer.getAddress() + " " +
+                    "address.postalCode= " + customer.getAddress() + " " +
+                    "WHERE addressId=" + customer.getAddress() + ";");
         } catch (SQLException ex){
 
         }
 
-        *//**
+        /**
          * update country
-         *//*
-    }*/
+         */
+    }
 
     public static void saveAddress(Address address){
         String columnsToSave = "(address, address2, cityId, createDate, createdBy, lastUpdate, lastUpdateBy, phone, postalCode)";

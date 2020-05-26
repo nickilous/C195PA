@@ -1,5 +1,7 @@
 package SchedulingApp.Models;
 
+import SchedulingApp.DataBase.DataBaseManager;
+
 import java.sql.Date;
 import java.sql.Timestamp;
 
@@ -10,6 +12,11 @@ public class Address {
     int cityId;
     String postalCode;
     String phone;
+
+    public Address(){
+        addressId = DataBaseManager.getNextId("address");
+    }
+    public Address(int addressId){this.addressId = addressId;}
 
     public int getAddressId() {
         return addressId;

@@ -14,6 +14,7 @@ public class State {
     private static Locale selectedLanguage;
     private static User user;
     private static Calendar calendar = Calendar.getInstance();
+    private static Customer selectedCustomer;
     private static ObservableList<Appointment> appointments = FXCollections.observableArrayList();
     private static ObservableList<Customer> customers = FXCollections.observableArrayList();
     private static ObservableList<Address> addresses = FXCollections.observableArrayList();
@@ -64,11 +65,10 @@ public class State {
         ResultSet rs = DataBaseManager.getAllCustomerData();
         try {
             while (rs.next()) {
-                Customer customer = new Customer();
+                Customer customer = new Customer(rs.getInt("customerId"));
                 customer.setActive(rs.getInt("active"));
                 customer.setCustomerName(rs.getString("customerName"));
                 customer.setAddressId(rs.getInt("addressId"));
-                customer.setCustomerId(rs.getInt("customerId"));
                 customers.add(customer);
             }
             rs.close();
@@ -107,16 +107,16 @@ public class State {
             System.out.println(ex.getMessage());
         }
     }
-    public static void loadAddress(){
+    public static void loadAddresses(){
         ResultSet rs = DataBaseManager.getAllAddresses();
         try{
             while (rs.next()){
-                Address address = new Address();
-                address.setAddressId(rs.getInt("addressId"));
+                Address address = new Address(rs.getInt("addressId"));
                 address.setAddress(rs.getString("address"));
                 address.setAddress(rs.getString("address2"));
                 address.setPhone(rs.getString("phone"));
                 address.setPostalCode(rs.getString("postalCode"));
+                address.setCityId(rs.getInt("cityId"));
                 addresses.add(address);
             }
             rs.close();

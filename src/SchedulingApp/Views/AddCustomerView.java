@@ -7,7 +7,6 @@ import SchedulingApp.Models.City;
 import SchedulingApp.Models.Country;
 import SchedulingApp.Models.Customer;
 import SchedulingApp.ViewController.AddCustomerViewController;
-import javafx.collections.ListChangeListener;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
@@ -21,9 +20,6 @@ public class AddCustomerView {
 
     Customer customer = new Customer();
     AddCustomerViewController controller = new AddCustomerViewController();
-
-    City selectedCity = null;
-    Country selectedCountry = null;
 
     Label lblName = new Label();
     Label lblAddress = new Label();
@@ -42,6 +38,7 @@ public class AddCustomerView {
     ComboBox cbCity = new ComboBox();
     ComboBox cbCountry = new ComboBox();
 
+
     Button btSave = new Button();
 
     GridPane gpAddress = new GridPane();
@@ -51,7 +48,7 @@ public class AddCustomerView {
         setupLabels();
         setupComboBoxes();
         setupButton();
-        setupVBox();
+        setupGridPane();
     }
     public void setupLabels(){
         lblName.setText("Name:");
@@ -69,8 +66,8 @@ public class AddCustomerView {
         //cbCity.setDisable(true);
         cbCity.valueProperty().addListener((obs, oldValue, newValue) ->{
             //TODO: Listen for city combo box change
-            selectedCity = (City) newValue;
-            controller.cityComboBoxListener();
+
+            controller.cityComboBoxListener((City) newValue);
         });
         cbCountry.getItems().addAll(State.getCountries());
         cbCountry.setCellFactory(lv -> new CountryCell());
@@ -78,12 +75,11 @@ public class AddCustomerView {
         //cbCountry.setDisable(true);
         cbCountry.valueProperty().addListener((obs, oldValue, newValue) ->{
             //TODO: listen for country combo box change
-            selectedCountry = (Country) newValue;
-            controller.countryComboBoxListener();
+            controller.countryComboBoxListener((Country) newValue);
         });
         cbCountry.setValue(State.getCountries().get(0));
     }
-    public void setupVBox(){
+    public void setupGridPane(){
 
         gpAddress.add(lblName, 0,0);
         gpAddress.add(tfName, 1, 0);
@@ -139,21 +135,23 @@ public class AddCustomerView {
             try {
                 Customer.isCustomerValid(tfName.getText(),
                         tfAddress.getText(),
-                        selectedCity.getCity(),
-                        selectedCountry.getCountry(),
+                        controller.getSelectedCity().getCity(),
+                        controller.getSelectedCountry().getCountry(),
                         tfPostalCode.getText(),
                         tfPhone.getText());
                 Customer customer = new Customer();
                 Address address = new Address();
 
                 customer.setCustomerName(tfName.getText());
-                customer.setAddressId(State.getAddresses().size() + 1);
+                customer.setAddressId(address.getAddressId());
 
                 address.setAddress(tfAddress.getText());
                 address.setAddress2(tfAddress2.getText());
                 address.setPostalCode(tfPostalCode.getText());
                 address.setPhone(tfPhone.getText());
-                address.setCityId(selectedCity.getCityId());
+                address.setCityId(controller.getSelectedCity().getCityId());
+
+
 
                 controller.handleSave(customer, address);
             } catch (UserFieldsEmptyException ex){

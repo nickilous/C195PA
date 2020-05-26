@@ -39,7 +39,7 @@ public class Main extends Application {
          */
         new Thread(() -> {
             DBConnection.makeConnection();
-            State.loadAddress();
+            State.loadAddresses();
             State.loadCities();
             State.loadCountries();
             State.loadCustomers();

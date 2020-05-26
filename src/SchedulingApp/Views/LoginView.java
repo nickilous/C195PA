@@ -176,6 +176,7 @@ public class LoginView {
         cbLocale = new ComboBox<>();
         cbLocale.getItems().addAll(Locale.ENGLISH, Locale.FRENCH);
         cbLocale.setValue(Locale.ENGLISH);
+        State.setSelectedLanguage(cbLocale.getValue());
         cbLocale.setCellFactory(lv -> new LocaleCell());
         cbLocale.setButtonCell(new LocaleCell());
 
@@ -185,8 +186,6 @@ public class LoginView {
                 controller.comboBoxListener(newValue);
             }
         });
-        State.setSelectedLanguage(cbLocale.getValue());
-
     }
     public static class LocaleCell extends ListCell<Locale> {
         @Override

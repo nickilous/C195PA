@@ -1,6 +1,8 @@
 package SchedulingApp.Models;
 
 import SchedulingApp.DataBase.DataBaseManager;
+import SchedulingApp.Exceptions.AddressFieldsEmptyException;
+import SchedulingApp.Exceptions.UserFieldsEmptyException;
 
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -9,9 +11,14 @@ public class Address {
     int addressId;
     String address;
     String address2;
-    int cityId;
     String postalCode;
     String phone;
+
+    int cityId;
+    String city;
+
+    int countryId;
+    String country;
 
     public Address(){
         addressId = DataBaseManager.getNextId("address");
@@ -64,5 +71,47 @@ public class Address {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public int getCountryId() {
+        return countryId;
+    }
+
+    public void setCountryId(int countryId) {
+        this.countryId = countryId;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public static void isAddressValid(String address,
+                                      String postalCode,
+                                      String phone) throws AddressFieldsEmptyException {
+        String errorMessage = "";
+        if (address.length() == 0) {
+            errorMessage = errorMessage + "Address Field Empty";
+        } else
+        if (postalCode.length() == 0) {
+            errorMessage = errorMessage + "Postal Code Field Empty";
+        } else
+        if (phone.length() == 0) {
+            errorMessage = errorMessage + "Phone Field Empty";
+        }
+        if (!errorMessage.isEmpty()){
+            throw new AddressFieldsEmptyException(errorMessage);
+        }
     }
 }

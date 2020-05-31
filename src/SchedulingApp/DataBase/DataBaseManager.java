@@ -3,6 +3,7 @@ package SchedulingApp.DataBase;
 import SchedulingApp.AppState.State;
 import SchedulingApp.Exceptions.UserNotValidException;
 import SchedulingApp.Models.Address;
+import SchedulingApp.Models.City;
 import SchedulingApp.Models.Customer;
 import SchedulingApp.Models.User;
 
@@ -16,9 +17,13 @@ public class DataBaseManager {
     private static String INSERT = "INSERT INTO ";
     private static String UPDATE = "UPDATE ";
     private static String FROM = "FROM ";
+    private static String JOIN = "JOIN ";
+    private static String ON = " ON ";
 
     private static String CUSTOMER = "customer";
     private static String ADDRESS = "address";
+    private static String CITY = "city";
+    private static String COUNTRY = "country";
 
     public DataBaseManager(){
 
@@ -53,7 +58,9 @@ public class DataBaseManager {
         ResultSet rs = null;
         try{
             PreparedStatement pst = DBConnection.getConnection().prepareStatement(SELECT +
-                    ALL + FROM + " " + ADDRESS + ";" );
+                    ALL + FROM + " " + ADDRESS + " " +
+                    JOIN + CITY + ON + "address.cityId=city.cityId " +
+                    JOIN + COUNTRY + ON + "city.countryId=country.countryId;" );
             rs = pst.executeQuery();
         } catch (SQLException ex){
             System.out.println(ex.getMessage());
@@ -68,6 +75,20 @@ public class DataBaseManager {
                     "FROM city;");
             rs = pst.executeQuery();
         } catch (SQLException ex){
+            System.out.println(ex.getMessage());
+        }
+        return rs;
+    }
+
+    public static ResultSet getSelectedCities(int countryId){
+        ResultSet rs = null;
+        try{
+            PreparedStatement pst = DBConnection.getConnection().prepareStatement(SELECT + ALL + FROM
+            + CITY + " WHERE countryId=?;"
+            );
+            pst.setInt(1, countryId);
+            rs = pst.executeQuery();
+        } catch(SQLException ex){
             System.out.println(ex.getMessage());
         }
         return rs;
@@ -161,56 +182,28 @@ public class DataBaseManager {
         return rs;
     }
 
-    public static void updateCustomerData(Customer customer){
-        try{
-            PreparedStatement pst = DBConnection.getConnection().prepareStatement("UPDATE customer " +
-                    "SET customer.customerName=?, " +
-                    "customer.addressId=? " +
-                    "WHERE customer.customerId=?;");
-            pst.setString(1,customer.getCustomerName());
-            pst.setInt(2, customer.getAddressId());
-            pst.setInt(3, customer.getCustomerId());
-            pst.executeUpdate();
-        } catch (SQLException ex){
-
-        }
-    }
-    public static void updateCustomerAddress(Customer customer){
+    public static void updateAddress(Address address){
         /**
          * Update address
          */
         try{
             PreparedStatement pst = DBConnection.getConnection().prepareStatement("UPDATE address " +
-                    "SET address.address=" + customer.getAddress() + ", " +
-                    "address.address2=" + customer.getAddress2() + ", " +
-                    "address.phone=" + customer.getPhone() + " " +
-                    "address.postalCode= " + customer.getPostalCode() + " " +
-                    "address.cityId=" + customer.getCity() + " " +
-                    "WHERE addressId=" + customer.getAddressId() + ";");
+                    "SET address.address=?," +
+                    "address.address2=?," +
+                    "address.phone=?,"+
+                    "address.postalCode=?," +
+                    "address.cityId=?," +
+                    "WHERE addressId=?;");
+            pst.setString(1,address.getAddress());
+            pst.setString(2, address.getAddress2());
+            pst.setString(3, address.getPhone());
+            pst.setString(4, address.getPostalCode());
+            pst.setInt(5, address.getCityId());
+            pst.setInt(6, address.getAddressId());
         } catch (SQLException ex){
             System.out.println(ex.getMessage());
         }
-        /**
-         * Update city
-         *
-         */
-
-        try{
-            PreparedStatement pst = DBConnection.getConnection().prepareStatement("UPDATE city " +
-                    "SET city.city=" + customer.getCity()+ ", " +
-                    "address.address2=" + customer.getAddress() + ", " +
-                    "address.phone=" + customer.getAddress() + " " +
-                    "address.postalCode= " + customer.getAddress() + " " +
-                    "WHERE addressId=" + customer.getAddress() + ";");
-        } catch (SQLException ex){
-
-        }
-
-        /**
-         * update country
-         */
     }
-
     public static void saveAddress(Address address){
         String columnsToSave = "(address, address2, cityId, createDate, createdBy, lastUpdate, lastUpdateBy, phone, postalCode)";
         String dataToSave = "(?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -228,6 +221,25 @@ public class DataBaseManager {
             pst.setString(7, State.getUser().getUserName());
             pst.setString(8, address.getPhone());
             pst.setString(9, address.getPostalCode());
+            pst.executeUpdate();
+        } catch (SQLException ex){
+            System.out.println(ex.getMessage());
+        }
+    }
+    public static void updateCustomer(Customer customer){
+        try{
+            PreparedStatement pst = DBConnection.getConnection().prepareStatement(UPDATE + CUSTOMER +
+                    "SET " +
+                            "customerName=?," +
+                            "addressId=?," +
+                            "lastUpdate=?," +
+                            "lastUpdateBy=?;"
+
+            );
+            pst.setString(1, customer.getCustomerName());
+            pst.setInt(2, customer.getAddressId());
+            pst.setTimestamp(3, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
+            pst.setString(4, State.getUser().getUserName());
             pst.executeUpdate();
         } catch (SQLException ex){
             System.out.println(ex.getMessage());

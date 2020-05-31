@@ -129,26 +129,10 @@ public class Customer {
     }
 
     // Validation
-    public static void isCustomerValid(String customerName, String address, String city,
-                                         String country, String postalCode, String phone) throws UserFieldsEmptyException {
+    public static void isCustomerValid(String customerName) throws UserFieldsEmptyException {
         String errorMessage = "";
         if (customerName.length() == 0) {
             errorMessage = errorMessage + "Customer Name Field Empty";
-        } else
-        if (address.length() == 0) {
-            errorMessage = errorMessage + "Address Field Empty";
-        } else
-        if (city.length() == 0) {
-            errorMessage = errorMessage + "City Not Selected";
-        } else
-        if (country.length() == 0) {
-            errorMessage = errorMessage + "Country Not Selected";
-        } else
-        if (postalCode.length() == 0) {
-            errorMessage = errorMessage + "Postal Code Field Empty";
-        } else
-        if (phone.length() == 0) {
-            errorMessage = errorMessage + "Phone Field Empty";
         }
         if (!errorMessage.isEmpty()){
             throw new UserFieldsEmptyException(errorMessage);

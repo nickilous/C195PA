@@ -40,8 +40,8 @@ public class Main extends Application {
         new Thread(() -> {
             DBConnection.makeConnection();
             State.loadAddresses();
-            State.loadCities();
             State.loadCountries();
+            State.loadCities();
             State.loadCustomers();
         }).start();
 

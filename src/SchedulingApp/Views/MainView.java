@@ -25,10 +25,11 @@ public class MainView {
     HBox toggleButtonsHBox = new HBox();
 
     TableView<Customer> tvCustomers = new TableView();
-    TableColumn customerId = new TableColumn("Customer ID");
     TableColumn customerName = new TableColumn("Customer Name");
-
     TableColumn address = new TableColumn("Address");
+    TableColumn address2 = new TableColumn("Address 2");
+    TableColumn city = new TableColumn("City");
+    TableColumn country = new TableColumn("Country");
 
     ToggleButton monthToggleButton = new ToggleButton();
     ToggleButton weekToggleButton = new ToggleButton();
@@ -46,10 +47,10 @@ public class MainView {
     Button updateAppointmentButton = new Button();
     Button deleteAppointmentButton = new Button();
 
-    SimpleIntegerProperty calRow = new SimpleIntegerProperty();
-    SimpleIntegerProperty calCol = new SimpleIntegerProperty();
 
     public MainView(){
+        State.addListListeners();
+
         mainAnchorPane.getChildren().add(mainBorderPane);
         mainAnchorPane.setPrefHeight(800);
         mainAnchorPane.setPrefWidth(1200);
@@ -168,18 +169,19 @@ public class MainView {
     }
     public void setupTV(){
         tvCustomers.setPrefWidth(400);
-        tvCustomers.getColumns().addAll(customerId, customerName, address);
+        tvCustomers.getColumns().addAll(customerName, address, address2, city, country);
         setupTVCol();
     }
     public Parent getView(){
         return mainAnchorPane;
     }
     public void setupTVCol() {
-
-        customerId.setCellValueFactory(new PropertyValueFactory<Customer, Integer>("customerId"));
         customerName.setCellValueFactory(new PropertyValueFactory<Customer, String>("customerName"));
+        address.setCellValueFactory(new PropertyValueFactory<Customer, String>("address"));
+        address2.setCellValueFactory(new PropertyValueFactory<Customer, String>("address2"));
+        city.setCellValueFactory(new PropertyValueFactory<Customer, String>("city"));
+        country.setCellValueFactory(new PropertyValueFactory<Customer, String>("country"));
 
-        State.loadCustomers();
         tvCustomers.setItems(State.getCustomers());
     }
 }

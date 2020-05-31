@@ -1,159 +1,67 @@
 package SchedulingApp.Views;
 
-import SchedulingApp.AppState.State;
+import SchedulingApp.DataBase.DataBaseManager;
 import SchedulingApp.Exceptions.UserFieldsEmptyException;
-import SchedulingApp.Models.Address;
-import SchedulingApp.Models.City;
-import SchedulingApp.Models.Country;
 import SchedulingApp.Models.Customer;
+import SchedulingApp.ViewController.AddAddressViewController;
 import SchedulingApp.ViewController.AddCustomerViewController;
+import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 
 public class AddCustomerView {
+    private static Customer customer = new Customer(DataBaseManager.getNextId("customer"));
+
     AnchorPane mainAnchorPane = new AnchorPane();
     public Parent getView(){
         return mainAnchorPane;
     }
 
-    Customer customer = new Customer();
     AddCustomerViewController controller = new AddCustomerViewController();
 
     Label lblName = new Label();
-    Label lblAddress = new Label();
-    Label lblAddress2 = new Label();
-    Label lblPhone = new Label();
-    Label lblCity = new Label();
-    Label lblCountry = new Label();
-    Label lblPostalCode = new Label();
-
     TextField tfName = new TextField();
-    TextField tfAddress = new TextField();
-    TextField tfAddress2 = new TextField();
-    TextField tfPhone = new TextField();
-    TextField tfPostalCode = new TextField();
 
-    ComboBox cbCity = new ComboBox();
-    ComboBox cbCountry = new ComboBox();
-
-
-    Button btSave = new Button();
-
-    GridPane gpAddress = new GridPane();
+    Button btNext = new Button();
+    GridPane gpCustomer = new GridPane();
 
     public AddCustomerView(AddCustomerViewController controller){
         this.controller = controller;
         setupLabels();
-        setupComboBoxes();
         setupButton();
         setupGridPane();
     }
     public void setupLabels(){
-        lblName.setText("Name:");
-        lblAddress.setText("Address:");
-        lblAddress2.setText("Address 2:");
-        lblCity.setText("City:");
-        lblCountry.setText("Country:");
-        lblPhone.setText("Phone:");
-        lblPostalCode.setText("Postal Code:");
+        lblName.setText("Enter Name:");
     }
-    public void setupComboBoxes(){
-        cbCity.getItems().addAll(State.getCities());
-        cbCity.setCellFactory(lv -> new CityCell());
-        cbCity.setButtonCell(new CityCell());
-        //cbCity.setDisable(true);
-        cbCity.valueProperty().addListener((obs, oldValue, newValue) ->{
-            //TODO: Listen for city combo box change
 
-            controller.cityComboBoxListener((City) newValue);
-        });
-        cbCountry.getItems().addAll(State.getCountries());
-        cbCountry.setCellFactory(lv -> new CountryCell());
-        cbCountry.setButtonCell(new CountryCell());
-        //cbCountry.setDisable(true);
-        cbCountry.valueProperty().addListener((obs, oldValue, newValue) ->{
-            //TODO: listen for country combo box change
-            controller.countryComboBoxListener((Country) newValue);
-        });
-        cbCountry.setValue(State.getCountries().get(0));
-    }
     public void setupGridPane(){
-
-        gpAddress.add(lblName, 0,0);
-        gpAddress.add(tfName, 1, 0);
-
-        gpAddress.add(lblAddress, 0, 1);
-        gpAddress.add(tfAddress, 1, 1);
-
-        gpAddress.add(lblAddress2,0,2);
-        gpAddress.add(tfAddress2, 1, 2);
-
-        gpAddress.add(lblPostalCode, 0, 3);
-        gpAddress.add(tfPostalCode, 1, 3);
-
-        gpAddress.add(lblCity, 0, 4);
-        gpAddress.add(cbCity, 1, 4);
-
-        gpAddress.add(lblCountry, 0, 5);
-        gpAddress.add(cbCountry, 1, 5);
-
-        gpAddress.add(lblPhone, 0, 6);
-        gpAddress.add(tfPhone, 1,6);
-
-        gpAddress.add(btSave,0,7,2,1);
-
-        mainAnchorPane.getChildren().add(gpAddress);
+        gpCustomer.add(lblName, 0,0);
+        gpCustomer.add(tfName, 1, 0);
+        gpCustomer.add(btNext,0,2,2,1);
+        mainAnchorPane.getChildren().add(gpCustomer);
     }
-    public static class CityCell extends ListCell<City>{
-        @Override
-        protected void updateItem(City city, boolean empty) {
-            super.updateItem(city, empty);
-            if(empty){
-                setText(null);
-            } else {
-                setText(city.getCity());
-            }
-        }
-    }
-    public static class CountryCell extends ListCell<Country> {
-        @Override
-        public void updateItem(Country country, boolean empty) {
-            super.updateItem(country, empty);
-            if (empty) {
-                setText(null);
-            } else {
-                setText(country.getCountry());
-            }
-        }
-    }
+
 
     private void setupButton(){
-        btSave.setText("Save");
-        btSave.setOnAction((event) -> {
+        btNext.setText("Next");
+        btNext.setOnAction((event) -> {
             try {
-                Customer.isCustomerValid(tfName.getText(),
-                        tfAddress.getText(),
-                        controller.getSelectedCity().getCity(),
-                        controller.getSelectedCountry().getCountry(),
-                        tfPostalCode.getText(),
-                        tfPhone.getText());
-                Customer customer = new Customer();
-                Address address = new Address();
-
+                Customer.isCustomerValid(tfName.getText());
                 customer.setCustomerName(tfName.getText());
-                customer.setAddressId(address.getAddressId());
 
-                address.setAddress(tfAddress.getText());
-                address.setAddress2(tfAddress2.getText());
-                address.setPostalCode(tfPostalCode.getText());
-                address.setPhone(tfPhone.getText());
-                address.setCityId(controller.getSelectedCity().getCityId());
+                AddAddressView addAddressView = new AddAddressView(new AddAddressViewController(customer));
+                Parent mainViewParent = addAddressView.getView();
+                Scene mainViewScene = new Scene(mainViewParent);
+                Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
+                winAddProduct.setTitle("Add Customer Address");
+                winAddProduct.setScene(mainViewScene);
+                winAddProduct.show();
 
-
-
-                controller.handleSave(customer, address);
             } catch (UserFieldsEmptyException ex){
                 //TODO: Alert to the fields being empty
             }

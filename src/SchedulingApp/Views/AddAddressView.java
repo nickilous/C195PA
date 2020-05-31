@@ -15,6 +15,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 
+import java.util.Optional;
+
 public class AddAddressView {
     AnchorPane mainAnchorPane = new AnchorPane();
     public Parent getView(){
@@ -90,7 +92,17 @@ public class AddAddressView {
 
         btNext.setOnAction((event) -> {
             //TODO: create a confirmation view
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirmation Dialog");
+            alert.setHeaderText("Look, a Confirmation Dialog");
+            alert.setContentText("Are you ok with this?");
 
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == ButtonType.OK){
+                // ... user chose OK
+            } else {
+                // ... user chose CANCEL or closed the dialog
+            }
         });
 
         btAddAddress.setOnAction((event) -> {

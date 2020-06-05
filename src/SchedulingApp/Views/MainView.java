@@ -1,11 +1,9 @@
 package SchedulingApp.Views;
 
 import SchedulingApp.AppState.State;
-import SchedulingApp.Models.Address;
 import SchedulingApp.Models.Customer;
 import SchedulingApp.ViewController.AddCustomerViewController;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.collections.ListChangeListener;
+import SchedulingApp.ViewController.MainViewController;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -16,6 +14,9 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 public class MainView {
+
+    MainViewController controller;
+
     AnchorPane mainAnchorPane = new AnchorPane();
     VBox leftVBox = new VBox();
 
@@ -48,7 +49,8 @@ public class MainView {
     Button deleteAppointmentButton = new Button();
 
 
-    public MainView(){
+    public MainView(MainViewController controller){
+        this.controller = controller;
         State.addListListeners();
 
         mainAnchorPane.getChildren().add(mainBorderPane);
@@ -151,8 +153,8 @@ public class MainView {
 
         addCustomerButton.setOnAction((event) -> {
             AddCustomerViewController addCustomerViewController = new AddCustomerViewController();
-            AddCustomerView addCustomerView = new AddCustomerView(addCustomerViewController);
-            Parent addCustomerViewParent = addCustomerView.getView();
+            AddModifyCustomerView addModifyCustomerView = new AddModifyCustomerView(addCustomerViewController);
+            Parent addCustomerViewParent = addModifyCustomerView.getView();
             Scene mainViewScene = new Scene(addCustomerViewParent);
             Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
             winAddProduct.setTitle("Add Customer");
@@ -160,7 +162,14 @@ public class MainView {
             winAddProduct.show();
         });
         updateCustomerButton.setOnAction((event) -> {
-            //TODO
+            AddCustomerViewController addCustomerViewController = new AddCustomerViewController(controller.getCustomer());
+            AddModifyCustomerView addModifyCustomerView = new AddModifyCustomerView(addCustomerViewController);
+            Parent addCustomerViewParent = addModifyCustomerView.getView();
+            Scene mainViewScene = new Scene(addCustomerViewParent);
+            Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
+            winAddProduct.setTitle("Add Customer");
+            winAddProduct.setScene(mainViewScene);
+            winAddProduct.show();
         });
         deleteCustomerButton.setOnAction((event) -> {
             //TODO
@@ -170,6 +179,11 @@ public class MainView {
     public void setupTV(){
         tvCustomers.setPrefWidth(400);
         tvCustomers.getColumns().addAll(customerName, address, address2, city, country);
+        tvCustomers.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) ->{
+            if (newSelection != null) {
+                controller.setCustomer(newSelection);
+            }
+        });
         setupTVCol();
     }
     public Parent getView(){
@@ -184,5 +198,7 @@ public class MainView {
 
         tvCustomers.setItems(State.getCustomers());
     }
+
+
 }
 

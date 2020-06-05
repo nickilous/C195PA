@@ -5,6 +5,7 @@ import SchedulingApp.AppState.State;
 import SchedulingApp.Exceptions.UserFieldsEmptyException;
 import SchedulingApp.Exceptions.UserNotValidException;
 import SchedulingApp.ViewController.LoginViewController;
+import SchedulingApp.ViewController.MainViewController;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -135,8 +136,8 @@ public class LoginView {
         btLogin.setOnAction((event) -> {
             try {
                 controller.handleLogin(userName.getText(), password.getText());
-
-                MainView mainView = new MainView();
+                MainViewController controller = new MainViewController();
+                MainView mainView = new MainView(controller);
                 Parent mainViewParent = mainView.getView();
                 Scene mainViewScene = new Scene(mainViewParent);
                 Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();

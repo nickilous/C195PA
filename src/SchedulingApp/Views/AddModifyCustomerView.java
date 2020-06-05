@@ -1,6 +1,5 @@
 package SchedulingApp.Views;
 
-import SchedulingApp.DataBase.DataBaseManager;
 import SchedulingApp.Exceptions.UserFieldsEmptyException;
 import SchedulingApp.Models.Customer;
 import SchedulingApp.ViewController.AddAddressViewController;
@@ -13,15 +12,13 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
-public class AddCustomerView {
-    private static Customer customer = new Customer(DataBaseManager.getNextId("customer"));
-
+public class AddModifyCustomerView {
     AnchorPane mainAnchorPane = new AnchorPane();
     public Parent getView(){
         return mainAnchorPane;
     }
 
-    AddCustomerViewController controller = new AddCustomerViewController();
+    AddCustomerViewController controller;
 
     Label lblName = new Label();
     TextField tfName = new TextField();
@@ -29,14 +26,20 @@ public class AddCustomerView {
     Button btNext = new Button();
     GridPane gpCustomer = new GridPane();
 
-    public AddCustomerView(AddCustomerViewController controller){
+    public AddModifyCustomerView(AddCustomerViewController controller){
         this.controller = controller;
         setupLabels();
+        setupTextField();
         setupButton();
         setupGridPane();
     }
     public void setupLabels(){
         lblName.setText("Enter Name:");
+    }
+    public void setupTextField(){
+        if(!(controller.getCustomer() == null)){
+            tfName.setText(controller.getCustomer().getCustomerName());
+        }
     }
 
     public void setupGridPane(){
@@ -52,10 +55,10 @@ public class AddCustomerView {
         btNext.setOnAction((event) -> {
             try {
                 Customer.isCustomerValid(tfName.getText());
-                customer.setCustomerName(tfName.getText());
+                controller.getCustomer().setCustomerName(tfName.getText());
 
-                AddAddressView addAddressView = new AddAddressView(new AddAddressViewController(customer));
-                Parent mainViewParent = addAddressView.getView();
+                AddModifyAddressView addModifyAddressView = new AddModifyAddressView(new AddAddressViewController(controller.getCustomer()));
+                Parent mainViewParent = addModifyAddressView.getView();
                 Scene mainViewScene = new Scene(mainViewParent);
                 Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
                 winAddProduct.setTitle("Add Customer Address");

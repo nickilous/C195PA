@@ -1,29 +1,30 @@
 package SchedulingApp.Views;
 
 import SchedulingApp.AppState.State;
-import SchedulingApp.DataBase.DataBaseManager;
 import SchedulingApp.Exceptions.AddressFieldsEmptyException;
 import SchedulingApp.Models.Address;
 import SchedulingApp.Models.City;
 import SchedulingApp.Models.Country;
 import SchedulingApp.Models.Customer;
 import SchedulingApp.ViewController.AddAddressViewController;
+import SchedulingApp.ViewController.MainViewController;
+import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 
 import java.util.Optional;
 
-public class AddAddressView {
+public class AddModifyAddressView {
     AnchorPane mainAnchorPane = new AnchorPane();
     public Parent getView(){
         return mainAnchorPane;
     }
-
-    private Address newAddress = new Address();
 
     AddAddressViewController controller;
 
@@ -55,7 +56,7 @@ public class AddAddressView {
     Button btNext = new Button();
     Button btAddAddress = new Button();
 
-    public AddAddressView(AddAddressViewController controller){
+    public AddModifyAddressView(AddAddressViewController controller){
         this.controller = controller;
         setupLabels();
         setupComboBoxes();
@@ -93,13 +94,24 @@ public class AddAddressView {
         btNext.setOnAction((event) -> {
             //TODO: create a confirmation view
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Confirmation Dialog");
-            alert.setHeaderText("Look, a Confirmation Dialog");
-            alert.setContentText("Are you ok with this?");
+            alert.setTitle("Customer To Save");
+            alert.setHeaderText("Customer Name: " + controller.getCustomer().getCustomerName());
+            alert.setContentText("Address: " + controller.getSelectedAddress().getAddress() + "\n" +
+                    "Address2: " + controller.getSelectedAddress().getAddress2());
 
             Optional<ButtonType> result = alert.showAndWait();
             if (result.get() == ButtonType.OK){
                 // ... user chose OK
+                controller.handleSaveCustomer();
+                MainViewController controller = new MainViewController();
+                MainView mainView = new MainView(controller);
+                Parent mainViewParent = mainView.getView();
+                Scene mainViewScene = new Scene(mainViewParent);
+                Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
+                winAddProduct.setTitle("Main Screen");
+                winAddProduct.setScene(mainViewScene);
+                winAddProduct.show();
+
             } else {
                 // ... user chose CANCEL or closed the dialog
             }
@@ -109,15 +121,25 @@ public class AddAddressView {
             //TODO: add address to address list and database
             try {
                 Address.isAddressValid(tfAddress.getText(), tfPostalCode.getText(), tfPhone.getText());
-                Address address = new Address(DataBaseManager.getNextId("address"));
+                Address address = new Address();
                 address.setAddress(tfAddress.getText());
                 address.setAddress2(tfAddress2.getText());
                 address.setPostalCode(tfPostalCode.getText());
                 address.setPhone(tfPhone.getText());
                 address.setCityId(controller.getSelectedCity().getCityId());
+                address.setCountryId(controller.getSelectedCountry().getCountryId());
+                address.setCountry(controller.getSelectedCountry().getCountry());
+
                 controller.handleAddAddress(address);
             } catch (AddressFieldsEmptyException ex){
                 System.out.println(ex.getMessage());
+            } catch (NullPointerException ex){
+                System.out.println(ex.getMessage());
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("City not selected");
+                alert.setHeaderText("Error: City Not Selected");
+                alert.setContentText("Please Select a City");
+                alert.showAndWait();
             }
         });
     }
@@ -133,6 +155,11 @@ public class AddAddressView {
     public void setupTV(){
         tvAddress.setPrefWidth(400);
         tvAddress.getColumns().addAll( address, address2, city, country);
+        tvAddress.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) ->{
+            if (newSelection != null) {
+                controller.setSelectedAddress(newSelection);
+            }
+        });
         setupTvCol();
     }
     public void setupTvCol(){
@@ -146,27 +173,36 @@ public class AddAddressView {
     public void setupComboBoxes(){
 
 
-        cbCity.setCellFactory(lv -> new AddAddressView.CityCell());
-        cbCity.setButtonCell(new AddAddressView.CityCell());
+        cbCity.setCellFactory(lv -> new AddModifyAddressView.CityCell());
+        cbCity.setButtonCell(new AddModifyAddressView.CityCell());
 
         cbCity.valueProperty().addListener((obs, oldValue, newValue) ->{
             //TODO: Listen for city combo box change
             controller.cityComboBoxListener((City) newValue);
         });
 
-        cbCountry.setCellFactory(lv -> new AddAddressView.CountryCell());
-        cbCountry.setButtonCell(new AddAddressView.CountryCell());
+        cbCountry.setCellFactory(lv -> new AddModifyAddressView.CountryCell());
+        cbCountry.setButtonCell(new AddModifyAddressView.CountryCell());
 
         cbCountry.valueProperty().addListener((obs, oldValue, newValue) ->{
             //TODO: listen for country combo box change
+
             controller.countryComboBoxListener((Country) newValue);
+            if(!controller.getFilteredCities().isEmpty()) {
+                cbCity.getItems().addAll(controller.getFilteredCities());
+                cbCity.setValue(controller.getFilteredCities().get(0));
+                cbCity.setDisable(false);
+            } else {
+                cbCity.setValue(null);
+                cbCity.getItems().clear();
+                cbCity.getSelectionModel().clearSelection();
+                cbCity.setDisable(true);
+            }
         });
 
         cbCountry.getItems().addAll(State.getCountries());
         cbCountry.setValue(State.getCountries().get(0));
 
-        cbCity.getItems().addAll(controller.getCities());
-        cbCity.setValue(controller.getCities().get(0));
 
     }
     public static class CityCell extends ListCell<City> {

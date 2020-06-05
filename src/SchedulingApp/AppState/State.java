@@ -177,6 +177,7 @@ public class State {
             public void onChanged(Change<? extends Address> change) {
                 while(change.next()) {
                     for (Address addedAddress : change.getAddedSubList()) {
+                        System.out.println("Saving address: " + addedAddress.getAddress());
                         DataBaseManager.saveAddress(addedAddress);
                     }
                 }
@@ -187,6 +188,7 @@ public class State {
             public void onChanged(Change<? extends Customer> change) {
                 while (change.next()) {
                     for (Customer addedCustomer : change.getAddedSubList()) {
+                        System.out.println("Saving customer: " + addedCustomer.getCustomerName());
                         DataBaseManager.saveCustomer(addedCustomer);
                     }
                 }

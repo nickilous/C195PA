@@ -16,6 +16,7 @@ public class DataBaseManager {
     private static String ALL = "* ";
     private static String INSERT = "INSERT INTO ";
     private static String UPDATE = "UPDATE ";
+    private static String DELETE = "DELETE ";
     private static String FROM = "FROM ";
     private static String JOIN = "JOIN ";
     private static String ON = " ON ";
@@ -229,17 +230,20 @@ public class DataBaseManager {
     public static void updateCustomer(Customer customer){
         try{
             PreparedStatement pst = DBConnection.getConnection().prepareStatement(UPDATE + CUSTOMER +
-                    "SET " +
+                    " SET " +
                             "customerName=?," +
                             "addressId=?," +
                             "lastUpdate=?," +
-                            "lastUpdateBy=?;"
+                            "lastUpdateBy=? " +
+                    "WHERE " +
+                            "customerId=?;"
 
             );
             pst.setString(1, customer.getCustomerName());
             pst.setInt(2, customer.getAddressId());
             pst.setTimestamp(3, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
             pst.setString(4, State.getUser().getUserName());
+            pst.setInt(5, customer.getCustomerId());
             pst.executeUpdate();
         } catch (SQLException ex){
             System.out.println(ex.getMessage());
@@ -259,6 +263,17 @@ public class DataBaseManager {
             pst.setString(4, State.getUser().getUserName());
             pst.setTimestamp(5, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
             pst.setString(6, State.getUser().getUserName());
+            pst.executeUpdate();
+        } catch (SQLException ex){
+            System.out.println(ex.getMessage());
+        }
+    }
+    public static void deleteCustomer(Customer customer){
+        try{
+            PreparedStatement pst = DBConnection.getConnection().prepareStatement(DELETE + FROM + CUSTOMER +
+                    " WHERE " +
+                        "customerId=?;");
+            pst.setInt(1, customer.getCustomerId());
             pst.executeUpdate();
         } catch (SQLException ex){
             System.out.println(ex.getMessage());

@@ -1,6 +1,7 @@
 package SchedulingApp.ViewController;
 
 import SchedulingApp.AppState.State;
+import SchedulingApp.DataBase.DataBaseManager;
 import SchedulingApp.Models.Address;
 import SchedulingApp.Models.City;
 import SchedulingApp.Models.Country;
@@ -13,6 +14,7 @@ import javafx.collections.transformation.FilteredList;
 public class AddModifyAddressViewController {
     private Customer customer;
     private Address address;
+
 
     private City selectedCity;
     private Country selectedCountry;
@@ -48,7 +50,6 @@ public class AddModifyAddressViewController {
     }
     public ObservableList getFilteredCities(){return filteredCities;}
 
-
     /**
      * Sets the selected city from the combo box
      * @param selectedCity from combo box
@@ -78,6 +79,16 @@ public class AddModifyAddressViewController {
      * to the database through the state add listener
      */
     public void handleSaveCustomer(){
+        customer.setAddress(address.getAddress());
+        customer.setAddress2(address.getAddress2());
+        customer.setPostalCode(address.getPostalCode());
+        customer.setPhone(address.getPhone());
+        customer.setAddressId(address.getAddressId());
+        customer.setCityId(address.getCityId());
+        customer.setCity(address.getCity());
+        customer.setCountryId(address.getCountryId());
+        customer.setCountry(address.getCountry());
+
         State.addCustomer(customer);
     }
 

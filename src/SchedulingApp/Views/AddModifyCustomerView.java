@@ -1,5 +1,6 @@
 package SchedulingApp.Views;
 
+import SchedulingApp.AppState.State;
 import SchedulingApp.Exceptions.UserFieldsEmptyException;
 import SchedulingApp.Models.Customer;
 import SchedulingApp.ViewController.AddModifyAddressViewController;
@@ -55,9 +56,18 @@ public class AddModifyCustomerView {
         btNext.setOnAction((event) -> {
             try {
                 Customer.isCustomerValid(tfName.getText());
-                controller.getCustomer().setCustomerName(tfName.getText());
+                if(State.isModifying()){
+                    controller.getCustomer().setCustomerName(tfName.getText());
+                } else {
+                    Customer customer = new Customer();
+                    customer.setCustomerName(tfName.getText());
+                    controller.setCustomer(customer);
+                }
 
-                AddModifyAddressView addModifyAddressView = new AddModifyAddressView(new AddModifyAddressViewController(controller.getCustomer()));
+                AddModifyAddressView addModifyAddressView = new AddModifyAddressView(
+                        new AddModifyAddressViewController(
+                                controller.getCustomer()));
+
                 Parent mainViewParent = addModifyAddressView.getView();
                 Scene mainViewScene = new Scene(mainViewParent);
                 Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();

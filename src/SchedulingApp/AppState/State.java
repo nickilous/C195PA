@@ -13,9 +13,15 @@ import java.util.Calendar;
 import java.util.ListIterator;
 import java.util.Locale;
 
+/**
+ * This should be the only place that Database manager is accessed
+ * state will hold all the current app info and changes and handle saving the data
+ */
 public class State {
     private static Locale selectedLanguage;
     private static User user;
+
+    private static boolean modifying;
 
     private static Calendar calendar = Calendar.getInstance();
 
@@ -25,11 +31,6 @@ public class State {
     private static ObservableList<City> cities = FXCollections.observableArrayList();
     private static ObservableList<Country> countries = FXCollections.observableArrayList();
 
-    private static ObservableList<Appointment> newAppointments = FXCollections.observableArrayList();
-    private static ObservableList<Customer> newCustomers = FXCollections.observableArrayList();
-    private static ObservableList<Address> newAddresses = FXCollections.observableArrayList();
-    private static ObservableList<City> newCities = FXCollections.observableArrayList();
-    private static ObservableList<Country> newCountries = FXCollections.observableArrayList();
 
     private static ListChangeListener<Address> addressListChangeListener;
     private static ListChangeListener<Customer> customerListChangeListener;
@@ -39,6 +40,13 @@ public class State {
     }
     public static User getUser() {
         return user;
+    }
+
+    public static void setModifying(boolean modifying) {
+        State.modifying = modifying;
+    }
+    public static boolean isModifying() {
+        return modifying;
     }
 
     public static Locale getSelectedLanguage() {
@@ -82,7 +90,15 @@ public class State {
 
 
     public static void addCustomer(Customer customer){
-        customers.add(customer);
+        if(modifying){
+            DataBaseManager.updateCustomer(customer);
+        } else {
+            customers.add(customer);
+        }
+    }
+    public static void deleteCustomer(Customer customer){
+        DataBaseManager.deleteCustomer(customer);
+        customers.remove(customer);
     }
     public static void addAddress(Address address){
         addresses.add(address);

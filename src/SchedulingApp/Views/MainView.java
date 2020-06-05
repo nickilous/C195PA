@@ -152,6 +152,7 @@ public class MainView {
         });
 
         addCustomerButton.setOnAction((event) -> {
+            State.setModifying(false);
             AddModifyCustomerViewController addModifyCustomerViewController = new AddModifyCustomerViewController();
             AddModifyCustomerView addModifyCustomerView = new AddModifyCustomerView(addModifyCustomerViewController);
             Parent addCustomerViewParent = addModifyCustomerView.getView();
@@ -162,17 +163,36 @@ public class MainView {
             winAddProduct.show();
         });
         updateCustomerButton.setOnAction((event) -> {
-            AddModifyCustomerViewController addModifyCustomerViewController = new AddModifyCustomerViewController(controller.getCustomer());
-            AddModifyCustomerView addModifyCustomerView = new AddModifyCustomerView(addModifyCustomerViewController);
-            Parent addCustomerViewParent = addModifyCustomerView.getView();
-            Scene mainViewScene = new Scene(addCustomerViewParent);
-            Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
-            winAddProduct.setTitle("Add Customer");
-            winAddProduct.setScene(mainViewScene);
-            winAddProduct.show();
+            Customer selectedCustomer = controller.getSelectedCustomer();
+            if(!(selectedCustomer == null)) {
+                State.setModifying(true);
+                AddModifyCustomerViewController addModifyCustomerViewController = new AddModifyCustomerViewController(controller.getSelectedCustomer());
+                AddModifyCustomerView addModifyCustomerView = new AddModifyCustomerView(addModifyCustomerViewController);
+                Parent addCustomerViewParent = addModifyCustomerView.getView();
+                Scene mainViewScene = new Scene(addCustomerViewParent);
+                Stage winAddProduct = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                winAddProduct.setTitle("Modify Customer");
+                winAddProduct.setScene(mainViewScene);
+                winAddProduct.show();
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Customer not selected");
+                alert.setHeaderText("Error: Customer Not Selected");
+                alert.setContentText("Please Select a Customer");
+                alert.showAndWait();
+            }
         });
         deleteCustomerButton.setOnAction((event) -> {
-            //TODO
+            Customer selectedCustomer = controller.getSelectedCustomer();
+            if(!(selectedCustomer == null)){
+                State.deleteCustomer(selectedCustomer);
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Customer not selected");
+                alert.setHeaderText("Error: Customer Not Selected");
+                alert.setContentText("Please Select a Customer");
+                alert.showAndWait();
+            }
         });
 
     }
@@ -181,7 +201,7 @@ public class MainView {
         tvCustomers.getColumns().addAll(customerName, address, address2, city, country);
         tvCustomers.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) ->{
             if (newSelection != null) {
-                controller.setCustomer(newSelection);
+                controller.setSelectedCustomer(newSelection);
             }
         });
         setupTVCol();

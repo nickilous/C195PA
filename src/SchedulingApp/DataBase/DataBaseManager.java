@@ -171,11 +171,13 @@ public class DataBaseManager {
         return rs;
     }
 
-    public static ResultSet getAllAppointments(){
+    public static ResultSet getAllAppointments(User user){
         ResultSet rs = null;
         try{
             PreparedStatement pst = DBConnection.getConnection().prepareStatement("SELECT * " +
-                    "FROM appointment ");
+                    "FROM appointment " +
+                    "WHERE userId=?;");
+            pst.setInt(1, user.getUserID());
             rs = pst.executeQuery();
         } catch (SQLException ex){
             System.out.println(ex.getMessage());

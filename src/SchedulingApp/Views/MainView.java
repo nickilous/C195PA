@@ -1,6 +1,7 @@
 package SchedulingApp.Views;
 
 import SchedulingApp.AppState.State;
+import SchedulingApp.Models.Appointment;
 import SchedulingApp.Models.Customer;
 import SchedulingApp.ViewController.AddModifyCustomerViewController;
 import SchedulingApp.ViewController.MainViewController;
@@ -31,6 +32,13 @@ public class MainView {
     TableColumn address2 = new TableColumn("Address 2");
     TableColumn city = new TableColumn("City");
     TableColumn country = new TableColumn("Country");
+
+    TableView<Appointment> tvAppointments = new TableView<>();
+    TableColumn title = new TableColumn("Appointment");
+    TableColumn description = new TableColumn("Description");
+    TableColumn start = new TableColumn("Start");
+    TableColumn end = new TableColumn("End");
+    TableColumn type = new TableColumn("type");
 
     ToggleButton monthToggleButton = new ToggleButton();
     ToggleButton weekToggleButton = new ToggleButton();
@@ -63,6 +71,7 @@ public class MainView {
 
         mainBorderPane.setTop(toggleButtonsHBox);
         mainBorderPane.setCenter(tvCustomers);
+        mainBorderPane.setRight(tvAppointments);
 
 
         setupTopBorderPane();
@@ -97,6 +106,9 @@ public class MainView {
         toggleButtonsHBox.getChildren().add(monthToggleButton);
         toggleButtonsHBox.setAlignment(Pos.CENTER);
         chooseMonthWeekGroup.selectToggle(weekToggleButton);
+        chooseMonthWeekGroup.selectedToggleProperty().addListener((obs, oldValue, newValue) ->{
+            //TODO: set listener for toggle
+        });
 
         chooseMonthWeekGroup.selectedToggleProperty().addListener((ov, oldToggle, newToggle) ->{
             //TODO
@@ -204,7 +216,15 @@ public class MainView {
                 controller.setSelectedCustomer(newSelection);
             }
         });
+        tvAppointments.setPrefWidth(400);
+        tvAppointments.getColumns().addAll(title, description, start, end, type);
+        tvAppointments.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) ->{
+            if (newSelection != null) {
+                //controller.setSelectedCustomer(newSelection);
+            }
+        });
         setupTVCol();
+
     }
     public Parent getView(){
         return mainAnchorPane;
@@ -217,6 +237,15 @@ public class MainView {
         country.setCellValueFactory(new PropertyValueFactory<Customer, String>("country"));
 
         tvCustomers.setItems(State.getCustomers());
+
+        title.setCellValueFactory(new PropertyValueFactory<Appointment, String>("title"));
+        description.setCellValueFactory(new PropertyValueFactory<Appointment, String>("description"));
+        start.setCellValueFactory(new PropertyValueFactory<Appointment, String>("start"));
+        end.setCellValueFactory(new PropertyValueFactory<Appointment, String>("end"));
+        type.setCellValueFactory(new PropertyValueFactory<Appointment, String>("type"));
+
+        tvAppointments.setItems(State.getAppointments());
+
     }
 
 

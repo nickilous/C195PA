@@ -39,6 +39,7 @@ public class LoginViewController {
             User user = new User(userName, password);
             DataBaseManager.validateLogin(user);
             State.setUser(user);
+            State.loadAppointments(user);
         } catch (UserFieldsEmptyException | UserNotValidException ex) {
             loginViewLogger.log(Level.INFO, ex.getMessage());
             throw ex;

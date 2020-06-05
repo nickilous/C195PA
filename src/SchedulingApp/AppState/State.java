@@ -186,6 +186,28 @@ public class State {
             System.out.println(ex.getMessage());
         }
     }
+    public static void loadAppointments(User user){
+        ResultSet rs = DataBaseManager.getAllAppointments(user);
+        try{
+            while(rs.next()){
+                Appointment appointment = new Appointment();
+                appointment.setAppointmentId(rs.getInt("appointmentId"));
+                appointment.setTitle(rs.getString("title"));
+                appointment.setCustomerId(rs.getInt("customerId"));
+                appointment.setDescription(rs.getString("description"));
+                appointment.setEnd(rs.getDate("end"));
+                appointment.setStart(rs.getDate("start"));
+                appointment.setContact(rs.getString("contact"));
+                appointment.setType(rs.getString("type"));
+                appointment.setUrl(rs.getString("url"));
+                appointment.setLocation(rs.getString("location"));
+                appointment.setUserId(rs.getInt("userId"));
+                appointments.add(appointment);
+            }
+        }catch(SQLException ex){
+
+        }
+    }
 
     public static void addListListeners(){
         addressListChangeListener = new ListChangeListener<Address>() {

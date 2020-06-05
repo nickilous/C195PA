@@ -2,7 +2,7 @@ package SchedulingApp.Views;
 
 import SchedulingApp.AppState.State;
 import SchedulingApp.Models.Customer;
-import SchedulingApp.ViewController.AddCustomerViewController;
+import SchedulingApp.ViewController.AddModifyCustomerViewController;
 import SchedulingApp.ViewController.MainViewController;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -152,8 +152,8 @@ public class MainView {
         });
 
         addCustomerButton.setOnAction((event) -> {
-            AddCustomerViewController addCustomerViewController = new AddCustomerViewController();
-            AddModifyCustomerView addModifyCustomerView = new AddModifyCustomerView(addCustomerViewController);
+            AddModifyCustomerViewController addModifyCustomerViewController = new AddModifyCustomerViewController();
+            AddModifyCustomerView addModifyCustomerView = new AddModifyCustomerView(addModifyCustomerViewController);
             Parent addCustomerViewParent = addModifyCustomerView.getView();
             Scene mainViewScene = new Scene(addCustomerViewParent);
             Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
@@ -162,8 +162,8 @@ public class MainView {
             winAddProduct.show();
         });
         updateCustomerButton.setOnAction((event) -> {
-            AddCustomerViewController addCustomerViewController = new AddCustomerViewController(controller.getCustomer());
-            AddModifyCustomerView addModifyCustomerView = new AddModifyCustomerView(addCustomerViewController);
+            AddModifyCustomerViewController addModifyCustomerViewController = new AddModifyCustomerViewController(controller.getCustomer());
+            AddModifyCustomerView addModifyCustomerView = new AddModifyCustomerView(addModifyCustomerViewController);
             Parent addCustomerViewParent = addModifyCustomerView.getView();
             Scene mainViewScene = new Scene(addCustomerViewParent);
             Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();

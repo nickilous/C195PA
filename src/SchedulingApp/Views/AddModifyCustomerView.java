@@ -2,8 +2,8 @@ package SchedulingApp.Views;
 
 import SchedulingApp.Exceptions.UserFieldsEmptyException;
 import SchedulingApp.Models.Customer;
-import SchedulingApp.ViewController.AddAddressViewController;
-import SchedulingApp.ViewController.AddCustomerViewController;
+import SchedulingApp.ViewController.AddModifyAddressViewController;
+import SchedulingApp.ViewController.AddModifyCustomerViewController;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -18,7 +18,7 @@ public class AddModifyCustomerView {
         return mainAnchorPane;
     }
 
-    AddCustomerViewController controller;
+    AddModifyCustomerViewController controller;
 
     Label lblName = new Label();
     TextField tfName = new TextField();
@@ -26,7 +26,7 @@ public class AddModifyCustomerView {
     Button btNext = new Button();
     GridPane gpCustomer = new GridPane();
 
-    public AddModifyCustomerView(AddCustomerViewController controller){
+    public AddModifyCustomerView(AddModifyCustomerViewController controller){
         this.controller = controller;
         setupLabels();
         setupTextField();
@@ -57,7 +57,7 @@ public class AddModifyCustomerView {
                 Customer.isCustomerValid(tfName.getText());
                 controller.getCustomer().setCustomerName(tfName.getText());
 
-                AddModifyAddressView addModifyAddressView = new AddModifyAddressView(new AddAddressViewController(controller.getCustomer()));
+                AddModifyAddressView addModifyAddressView = new AddModifyAddressView(new AddModifyAddressViewController(controller.getCustomer()));
                 Parent mainViewParent = addModifyAddressView.getView();
                 Scene mainViewScene = new Scene(mainViewParent);
                 Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();

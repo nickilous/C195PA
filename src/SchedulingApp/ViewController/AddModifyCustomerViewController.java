@@ -2,13 +2,13 @@ package SchedulingApp.ViewController;
 
 import SchedulingApp.Models.Customer;
 
-public class AddCustomerViewController {
+public class AddModifyCustomerViewController {
     private Customer customer = null;
 
-    public AddCustomerViewController(){
+    public AddModifyCustomerViewController(){
 
     }
-    public AddCustomerViewController(Customer customer){
+    public AddModifyCustomerViewController(Customer customer){
         this.customer = customer;
     }
 

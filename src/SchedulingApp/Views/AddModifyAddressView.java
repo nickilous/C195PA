@@ -6,7 +6,7 @@ import SchedulingApp.Models.Address;
 import SchedulingApp.Models.City;
 import SchedulingApp.Models.Country;
 import SchedulingApp.Models.Customer;
-import SchedulingApp.ViewController.AddAddressViewController;
+import SchedulingApp.ViewController.AddModifyAddressViewController;
 import SchedulingApp.ViewController.MainViewController;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -26,7 +26,7 @@ public class AddModifyAddressView {
         return mainAnchorPane;
     }
 
-    AddAddressViewController controller;
+    AddModifyAddressViewController controller;
 
     GridPane gpAddress = new GridPane();
     BorderPane bpAddress = new BorderPane();
@@ -56,7 +56,7 @@ public class AddModifyAddressView {
     Button btNext = new Button();
     Button btAddAddress = new Button();
 
-    public AddModifyAddressView(AddAddressViewController controller){
+    public AddModifyAddressView(AddModifyAddressViewController controller){
         this.controller = controller;
         setupLabels();
         setupComboBoxes();

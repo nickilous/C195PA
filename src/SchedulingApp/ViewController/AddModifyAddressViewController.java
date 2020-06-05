@@ -10,7 +10,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 
-public class AddAddressViewController {
+public class AddModifyAddressViewController {
     private Customer customer;
     private Address address;
 
@@ -20,7 +20,7 @@ public class AddAddressViewController {
     FilteredList<City> filteredData = new FilteredList<>(State.getCities(), c -> true);
     ObservableList<City> filteredCities = FXCollections.observableArrayList();
 
-    public AddAddressViewController(Customer customer){
+    public AddModifyAddressViewController(Customer customer){
         this.customer = customer;
     }
 

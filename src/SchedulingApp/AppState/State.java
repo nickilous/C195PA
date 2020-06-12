@@ -6,12 +6,20 @@ import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.scene.control.Alert;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.*;
 import java.util.Calendar;
 import java.util.ListIterator;
 import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.function.Predicate;
+import java.util.logging.Filter;
 
 /**
  * This should be the only place that Database manager is accessed
@@ -22,14 +30,19 @@ public class State {
     private static User user;
 
     private static boolean modifying;
+    private static int openCount = 0;
 
     private static Calendar calendar = Calendar.getInstance();
+    private static LocalDateTime time = LocalDateTime.now();
+    private static ZoneId zId = ZoneId.systemDefault();
 
     private static ObservableList<Appointment> appointments = FXCollections.observableArrayList();
+    private static ObservableList<Appointment> upComingAppointments = FXCollections.observableArrayList();
     private static ObservableList<Customer> customers = FXCollections.observableArrayList();
     private static ObservableList<Address> addresses = FXCollections.observableArrayList();
     private static ObservableList<City> cities = FXCollections.observableArrayList();
     private static ObservableList<Country> countries = FXCollections.observableArrayList();
+
 
 
     private static ListChangeListener<Address> addressListChangeListener;
@@ -40,6 +53,20 @@ public class State {
     }
     public static User getUser() {
         return user;
+    }
+
+    public static void setzId(ZoneId zoneId){
+        State.zId = zoneId;
+    }
+    public static ZoneId getzId(){
+        return zId;
+    }
+
+    public static LocalDateTime getTime(){
+        return time;
+    }
+    public static void setTime(LocalDateTime time){
+        State.time = time;
     }
 
     public static void setModifying(boolean modifying) {
@@ -195,8 +222,17 @@ public class State {
                 appointment.setTitle(rs.getString("title"));
                 appointment.setCustomerId(rs.getInt("customerId"));
                 appointment.setDescription(rs.getString("description"));
-                appointment.setEnd(rs.getDate("end"));
-                appointment.setStart(rs.getDate("start"));
+
+
+                LocalDateTime startUTC = rs.getTimestamp("start").toLocalDateTime();
+                LocalDateTime endUTC = rs.getTimestamp("end").toLocalDateTime();
+                ZonedDateTime startLocal = ZonedDateTime.ofInstant(startUTC.toInstant(ZoneOffset.UTC), zId);
+                ZonedDateTime endLocal = ZonedDateTime.ofInstant(endUTC.toInstant(ZoneOffset.UTC), zId);
+
+                appointment.setStart(startLocal);
+                appointment.setEnd(endLocal);
+
+
                 appointment.setContact(rs.getString("contact"));
                 appointment.setType(rs.getString("type"));
                 appointment.setUrl(rs.getString("url"));
@@ -207,6 +243,60 @@ public class State {
         }catch(SQLException ex){
 
         }
+    }
+    public static void loadUpComingAppointments(User user){
+        ResultSet rs = DataBaseManager.getUpcomingAppt(user);
+        try{
+            while(rs.next()){
+                Appointment appointment = new Appointment();
+                appointment.setAppointmentId(rs.getInt("appointmentId"));
+                appointment.setTitle(rs.getString("title"));
+                appointment.setCustomerId(rs.getInt("customerId"));
+                appointment.setDescription(rs.getString("description"));
+
+
+                LocalDateTime startUTC = rs.getTimestamp("start").toLocalDateTime();
+                LocalDateTime endUTC = rs.getTimestamp("end").toLocalDateTime();
+                ZonedDateTime startLocal = ZonedDateTime.ofInstant(startUTC.toInstant(ZoneOffset.UTC), zId);
+                ZonedDateTime endLocal = ZonedDateTime.ofInstant(endUTC.toInstant(ZoneOffset.UTC), zId);
+
+                appointment.setStart(startLocal);
+                appointment.setEnd(endLocal);
+
+
+                appointment.setContact(rs.getString("contact"));
+                appointment.setType(rs.getString("type"));
+                appointment.setUrl(rs.getString("url"));
+                appointment.setLocation(rs.getString("location"));
+                appointment.setUserId(rs.getInt("userId"));
+                upComingAppointments.add(appointment);
+            }
+        }catch(SQLException ex){
+
+        }
+    }
+
+
+
+    public static void logInAppointmentNotification() {
+        // Checks to see if the main screen has already been opened during this session
+        if (openCount == 0) {
+            for (Appointment appointment : upComingAppointments) {
+                ResourceBundle rb = ResourceBundle.getBundle("SchedulingApp/MainScreen", State.getSelectedLanguage());
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle(rb.getString("notificationUpcomingAppointment"));
+                alert.setHeaderText(rb.getString("notificationUpcomingAppointment"));
+                alert.setContentText(rb.getString("notificationUpcomingAppointmentMessage") + "\n" + rb.getString("lblTitle")
+                        + ": " + appointment.getTitle() + "\n" + rb.getString("lblDescription") + ": " + appointment.getDescription() +
+                        "\n" + rb.getString("lblLocation") + ": " + appointment.getLocation() + "\n" + rb.getString("lblContact") +
+                        ": " + appointment.getContact() + "\n" + rb.getString("lblUrl") + ": " + appointment.getUrl() + "\n" +
+                        rb.getString("lblDate") + ": " + appointment.getStart().toString() + "\n" + rb.getString("lblStartTime") + ": " +
+                        appointment.getStart().toString() + "\n" + rb.getString("lblEndTime") + ": " + appointment.getEnd().toString());
+                alert.showAndWait();
+            }
+        }
+        // Increment openCount so notifications won't be shown again this session
+        openCount++;
     }
 
     public static void addListListeners(){

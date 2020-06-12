@@ -14,6 +14,9 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
+import java.time.LocalDate;
+import java.time.YearMonth;
+
 public class MainView {
 
     MainViewController controller;
@@ -25,6 +28,17 @@ public class MainView {
     VBox addCustomerButtonsHBox = new VBox();
 
     HBox toggleButtonsHBox = new HBox();
+
+    TabPane tpCalendar = new TabPane();
+    Tab tWeek = new Tab("Week");
+    Tab tMonth = new Tab("Month");
+
+    HBox hbCalendar = new HBox();
+    Button btForward = new Button();
+    Button btBackward = new Button();
+
+    VBox vbCalendar = new VBox();
+    Label vbCalendarLabel = new Label("Calendar Label");
 
     TableView<Customer> tvCustomers = new TableView();
     TableColumn customerName = new TableColumn("Customer Name");
@@ -71,35 +85,22 @@ public class MainView {
 
         mainBorderPane.setTop(toggleButtonsHBox);
         mainBorderPane.setCenter(tvCustomers);
-        mainBorderPane.setRight(tvAppointments);
 
+        tpCalendar.getTabs().addAll(tWeek, tMonth);
 
         setupTopBorderPane();
         setupLeftBorderPane();
+        setupRightBoarderPane();
         setupTitlePanes();
         setupTV();
-
         setupButtonsUI();
     }
-    /*private void setupCalendarGridPane(SimpleIntegerProperty calRow, SimpleIntegerProperty calCol){
-        for (int i = 0; i < calRow.getValue(); i++) {
-            RowConstraints row = new RowConstraints();
-            row.setMinHeight(120);
-            row.setVgrow(Priority.ALWAYS);
-            calendarGridPane.getRowConstraints().add(row);
-        }
-        for (int i = 0; i < calCol.getValue(); i++) {
-            ColumnConstraints col = new ColumnConstraints();
-            col.setMinWidth(10);
-            col.setPrefWidth(100);
-            col.setHgrow(Priority.SOMETIMES);
-            calendarGridPane.getColumnConstraints().add(col);
-        }
-        calendarGridPane.setGridLinesVisible(true);
-    }*/
+
     private void setupTopBorderPane(){
         weekToggleButton.setText("Week");
         monthToggleButton.setText("Month");
+        weekToggleButton.setUserData("week");
+        monthToggleButton.setUserData("month");
         weekToggleButton.setToggleGroup(chooseMonthWeekGroup);
         monthToggleButton.setToggleGroup(chooseMonthWeekGroup);
         toggleButtonsHBox.getChildren().add(weekToggleButton);
@@ -108,10 +109,15 @@ public class MainView {
         chooseMonthWeekGroup.selectToggle(weekToggleButton);
         chooseMonthWeekGroup.selectedToggleProperty().addListener((obs, oldValue, newValue) ->{
             //TODO: set listener for toggle
-        });
+            LocalDate lt = LocalDate.now();
+            YearMonth ym = YearMonth.now();
+            if(newValue.getUserData() == "week"){
 
-        chooseMonthWeekGroup.selectedToggleProperty().addListener((ov, oldToggle, newToggle) ->{
-            //TODO
+            } else {
+
+            }
+            System.out.println("Old Value " + oldValue);
+            System.out.println("new Value " + newValue);
         });
     }
     private void setupTitlePanes(){
@@ -138,6 +144,34 @@ public class MainView {
         leftVBox.getChildren().add(addAppointmentTitlePane);
         leftVBox.prefWidth(184);
     }
+    private void setupRightBoarderPane(){
+        tWeek.setOnSelectionChanged (e -> {
+            if (tWeek.isSelected()) {
+                controller.calendarLabel(true);
+                tvAppointments.setItems(controller.getAppointmentsByWeek(controller.getTime()));
+                tWeek.setContent(tvAppointments);
+            } else {
+                tWeek.setContent(null);
+            }
+        });
+        tMonth.setOnSelectionChanged (e ->{
+            if(tMonth.isSelected()){
+                controller.calendarLabel(false);
+                tvAppointments.setItems(controller.getAppointmentsByMonth(controller.getTime()));
+                tMonth.setContent(tvAppointments);
+            } else {
+                tMonth.setContent(null);
+            }
+        }
+
+        );
+        tpCalendar.getSelectionModel().select(tWeek);
+        vbCalendarLabel.textProperty().bind(controller.calendarLabelProperty());
+
+        hbCalendar.getChildren().addAll(btBackward, vbCalendarLabel, btForward);
+        vbCalendar.getChildren().addAll(hbCalendar, tpCalendar);
+        mainBorderPane.setRight(vbCalendar);
+    }
     private void setupButtonsUI(){
         addAppointmentButton.setText("Add Appointment");
         updateAppointmentButton.setText("Update Appointment");
@@ -152,6 +186,16 @@ public class MainView {
         addCustomerButton.setMaxWidth(Double.MAX_VALUE);
         updateCustomerButton.setMaxWidth(Double.MAX_VALUE);
         deleteCustomerButton.setMaxWidth(Double.MAX_VALUE);
+
+        btForward.setText(">");
+        btBackward.setText("<");
+
+        btForward.setOnAction((event) ->{
+            //TODO
+        });
+        btBackward.setOnAction((event) -> {
+            //TODO
+        });
 
         addAppointmentButton.setOnAction((event) -> {
             //TODO
@@ -244,8 +288,7 @@ public class MainView {
         end.setCellValueFactory(new PropertyValueFactory<Appointment, String>("end"));
         type.setCellValueFactory(new PropertyValueFactory<Appointment, String>("type"));
 
-        tvAppointments.setItems(State.getAppointments());
-
+        tvAppointments.setItems(controller.getAppointmentsByWeek());
     }
 
 

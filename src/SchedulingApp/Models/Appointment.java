@@ -1,8 +1,8 @@
 package SchedulingApp.Models;
 
-import java.sql.Date;
-import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -16,8 +16,8 @@ public class Appointment {
     String contact;
     String type;
     String url;
-    Date start;
-    Date end;
+    ZonedDateTime start;
+    ZonedDateTime end;
 
     public int getUserId(){
         return userId;
@@ -91,19 +91,19 @@ public class Appointment {
         this.url = url;
     }
 
-    public Date getStart() {
+    public ZonedDateTime getStart() {
         return start;
     }
 
-    public void setStart(Date start) {
+    public void setStart(ZonedDateTime start) {
         this.start = start;
     }
 
-    public Date getEnd() {
+    public ZonedDateTime getEnd() {
         return end;
     }
 
-    public void setEnd(Date end) {
+    public void setEnd(ZonedDateTime end) {
         this.end = end;
     }
 

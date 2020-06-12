@@ -2,14 +2,17 @@ package SchedulingApp.DataBase;
 
 import SchedulingApp.AppState.State;
 import SchedulingApp.Exceptions.UserNotValidException;
-import SchedulingApp.Models.Address;
-import SchedulingApp.Models.City;
-import SchedulingApp.Models.Customer;
-import SchedulingApp.Models.User;
+import SchedulingApp.Models.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.Alert;
 
-import javax.print.DocFlavor;
 import javax.xml.transform.Result;
 import java.sql.*;
+import java.time.*;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class DataBaseManager {
     private static String SELECT = "SELECT ";
@@ -25,6 +28,8 @@ public class DataBaseManager {
     private static String ADDRESS = "address";
     private static String CITY = "city";
     private static String COUNTRY = "country";
+
+
 
     public DataBaseManager(){
 
@@ -181,6 +186,24 @@ public class DataBaseManager {
             rs = pst.executeQuery();
         } catch (SQLException ex){
             System.out.println(ex.getMessage());
+        }
+        return rs;
+    }
+    public static ResultSet getUpcomingAppt(User user) {
+        String getUpcomingApptSQL = "SELECT * FROM appointment "
+                + "WHERE (start BETWEEN ? AND ADDTIME(NOW(), '00:15:00') AND userId=?)";
+        ResultSet rs = null;
+        try {
+            PreparedStatement stmt = DBConnection.getConnection().prepareStatement(getUpcomingApptSQL);
+            ZonedDateTime localZT = ZonedDateTime.now(State.getzId());
+            ZonedDateTime zdtUTC = localZT.withZoneSameInstant(ZoneId.of("UTC"));
+            LocalDateTime localUTC = zdtUTC.toLocalDateTime();
+            stmt.setTimestamp(1, Timestamp.valueOf(localUTC));
+            stmt.setInt(2, State.getUser().getUserID());
+            rs = stmt.executeQuery();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
         }
         return rs;
     }

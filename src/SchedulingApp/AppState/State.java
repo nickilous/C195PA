@@ -47,6 +47,7 @@ public class State {
 
     private static ListChangeListener<Address> addressListChangeListener;
     private static ListChangeListener<Customer> customerListChangeListener;
+    private static ListChangeListener<Appointment> appointmentListChangeListener;
 
     public static void setUser(User user) {
         State.user = user;
@@ -130,6 +131,7 @@ public class State {
     public static void addAddress(Address address){
         addresses.add(address);
     }
+    public static void addAppointment(Appointment appt){appointments.add(appt);}
 
     public static void clearCustomers(){
         customers.clear();
@@ -213,6 +215,7 @@ public class State {
             System.out.println(ex.getMessage());
         }
     }
+
     public static void loadAppointments(User user){
         ResultSet rs = DataBaseManager.getAllAppointments(user);
         try{
@@ -322,8 +325,20 @@ public class State {
                 }
             }
         };
+        appointmentListChangeListener = new ListChangeListener<Appointment>(){
+            @Override
+            public void onChanged(Change<? extends Appointment> change) {
+                while (change.next()) {
+                    for (Appointment addedAppointment : change.getAddedSubList()) {
+                        System.out.println("Saving appointment: " + addedAppointment.getTitle());
+                        DataBaseManager.saveAppointment(addedAppointment);
+                    }
+                }
+            }
+        };
         State.getCustomers().addListener(customerListChangeListener);
         State.getAddresses().addListener(addressListChangeListener);
+        State.getAppointments().addListener(appointmentListChangeListener);
     }
 
     public void removeListeners(){

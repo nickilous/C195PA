@@ -4,17 +4,21 @@ import SchedulingApp.AppState.State;
 import SchedulingApp.Models.Appointment;
 import SchedulingApp.Models.Customer;
 import SchedulingApp.Views.AddModifyCustomerView;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Tab;
 import javafx.stage.Stage;
 
 import java.text.DateFormatSymbols;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -22,45 +26,72 @@ import java.util.function.Predicate;
 
 public class MainViewController {
     private Customer customer;
-    private LocalDateTime time;
+    private LocalDateTime startOfWeek;
+    private LocalDateTime startOfMonth;
     private StringProperty calendarLabel = new SimpleStringProperty();
+    private BooleanProperty isWeek = new SimpleBooleanProperty();
+    private ObservableList<Appointment> currentAppointments = FXCollections.observableArrayList();
+
 
     public MainViewController(){
-        this.time = State.getTime();
         this.calendarLabel.setValue("");
+        setTimeToStartOfWeek();
+        setTimeToStartOfMonth();
+        setupIsWeekListener();
+        filterAppointmentsTimeCustomer();
     }
-
-    public void setSelectedCustomer(Customer customer){
-        this.customer = customer;
+    private void setTimeToStartOfWeek() {
+        DayOfWeek dayOfWeek = State.getTime().getDayOfWeek();
+        switch (dayOfWeek){
+            case MONDAY -> {
+                startOfWeek = State.getTime();
+                break;
+            }
+            case TUESDAY -> {
+                startOfWeek = State.getTime().minusDays(1);
+                break;
+            }
+            case WEDNESDAY -> {
+                startOfWeek = State.getTime().minusDays(2);
+                break;
+            }
+            case THURSDAY -> {
+                startOfWeek = State.getTime().minusDays(3);
+                break;
+            }
+            case FRIDAY -> {
+                startOfWeek = State.getTime().minusDays(4);
+                break;
+            }
+            case SATURDAY -> {
+                startOfWeek = State.getTime().minusDays(5);
+                break;
+            }
+            case SUNDAY -> {
+                startOfWeek = State.getTime().minusDays(6);
+                break;
+            }
+        }
     }
-    public Customer getSelectedCustomer(){
-        return customer;
+    private void setTimeToStartOfMonth(){
+        int dayOfMonth = State.getTime().getDayOfMonth() - 1;
+        startOfMonth = State.getTime().minusDays(dayOfMonth);
     }
-
-    public LocalDateTime getTime() {
-        return time;
+    private void setupIsWeekListener(){
+        this.isWeek.addListener((obs, oldValue, newValue) ->{
+            changeLabel();
+            if(newValue){
+                setTimeToStartOfWeek();
+            } else {
+                setTimeToStartOfMonth();
+            }
+        });
     }
-    public void setTime(LocalDateTime time) {
-        this.time = time;
-    }
-
-    public String getCalendarLabel() {
-        return calendarLabel.get();
-    }
-
-    public StringProperty calendarLabelProperty() {
-        return calendarLabel;
-    }
-
-    public void setCalendarLabel(String calendarLabel) {
-        this.calendarLabel.set(calendarLabel);
-    }
-
-    public void calendarLabel(boolean isWeek){
-        if(isWeek) {
+    private void changeLabel(){
+        if(isWeek.get()){
             // Set the title based on current week
-            LocalDateTime startDate = getTime();
-            LocalDateTime endDate = getTime().plusDays(6);
+            LocalDateTime startDate = startOfWeek;
+            LocalDateTime endDate = startOfWeek.plusDays(6);
             String localizedStartDateMonth = new DateFormatSymbols().getMonths()[startDate.getMonthValue() - 1];
             String startDateMonthProper = localizedStartDateMonth.substring(0, 1).toUpperCase() + localizedStartDateMonth.substring(1);
             String startDateTitle = startDateMonthProper + " " + startDate.getDayOfMonth();
@@ -70,17 +101,78 @@ public class MainViewController {
             calendarLabel.setValue("  " + startDateTitle + " - " + endDateTitle + ", " + endDate.getYear() + "  ");
         } else {
             // Set the title based on current month
-            String localizedMonth = new DateFormatSymbols().getMonths()[getTime().getMonthValue() - 1];
+            String localizedMonth = new DateFormatSymbols().getMonths()[startOfMonth.getMonthValue() - 1];
             String properMonth = localizedMonth.substring(0, 1).toUpperCase() + localizedMonth.substring(1);
-            calendarLabel.setValue("  " + properMonth + " " + getTime().getYear() + "  ");
+            calendarLabel.setValue("  " + properMonth + " " + startOfMonth.getYear() + "  ");
+        }
+        filterAppointmentsTimeCustomer();
+    }
+
+    private void filterAppointmentsTimeCustomer(){
+        currentAppointments.clear();
+        FilteredList<Appointment> items = new FilteredList<>(State.getAppointments());
+
+        ZonedDateTime start;
+        ZonedDateTime end;
+        if(isWeek.get()){
+            start = ZonedDateTime.ofInstant(startOfWeek, ZoneOffset.UTC,State.getzId());
+            end = start.plusDays(6);
+        } else {
+            start = ZonedDateTime.ofInstant(startOfMonth,ZoneOffset.UTC,State.getzId());
+            end = start.plusMonths(1);
         }
 
+        Predicate<Appointment> startsAfter = i -> i.getStart().isAfter(start);
+        Predicate<Appointment> startsBefore = i -> i.getStart().isBefore(end);
+        if(customer != null) {
+            Predicate<Appointment> customer = i -> i.getCustomerId() == this.customer.getCustomerId();
+            Predicate<Appointment> time = startsAfter.and(startsBefore);
+            Predicate<Appointment> filter = time.and(customer);
+            items.setPredicate(filter);
+        } else {
+            Predicate<Appointment> time = startsAfter.and(startsBefore);
+            items.setPredicate(time);
+        }
+        currentAppointments.addAll(items);
     }
 
-    public void handleForward(Tab selectedTab){
-
+    public ObservableList<Appointment> getCurrentAppointments() {
+        return currentAppointments;
     }
-    public void handleBackward(Tab selectedTab){
+
+    public BooleanProperty isWeekProperty() {
+        return isWeek;
+    }
+
+    public void setSelectedCustomer(Customer customer){
+        this.customer = customer;
+        filterAppointmentsTimeCustomer();
+    }
+    public Customer getSelectedCustomer(){
+        return customer;
+    }
+
+    public StringProperty calendarLabelProperty() {
+        return calendarLabel;
+    }
+
+    public void handleForward(){
+        if(isWeek.get()){
+            startOfWeek = startOfWeek.plusDays(6);
+        } else {
+            startOfMonth = startOfMonth.plusMonths(1);
+        }
+        filterAppointmentsTimeCustomer();
+        changeLabel();
+    }
+    public void handleBackward(){
+        if(isWeek.get()){
+            startOfWeek = startOfWeek.minusDays(6);
+        } else {
+            startOfMonth = startOfMonth.minusMonths(1);
+        }
+        filterAppointmentsTimeCustomer();
+        changeLabel();
     }
 
     public void loadAddCustomerView(Event event){
@@ -104,27 +196,5 @@ public class MainViewController {
         winAddProduct.show();
     }
 
-    public FilteredList<Appointment> getAppointmentsByWeek(LocalDateTime startTime){
-        FilteredList<Appointment> items = new FilteredList<>(State.getAppointments());
-        ZonedDateTime start = ZonedDateTime.ofInstant(startTime, ZoneOffset.UTC,State.getzId());
 
-        Predicate<Appointment> startsAfter = i -> i.getStart().isAfter(start);
-        Predicate<Appointment> startsBefore = i -> i.getStart().isBefore(start.plusDays(7));
-
-        Predicate<Appointment> filter = startsAfter.and(startsBefore);
-        items.filtered(filter);
-        return items;
-    }
-
-    public FilteredList<Appointment> getAppointmentsByMonth(LocalDateTime startTime){
-        FilteredList<Appointment> items = new FilteredList<>(State.getAppointments());
-        ZonedDateTime start = ZonedDateTime.ofInstant(startTime,ZoneOffset.UTC,State.getzId());
-
-        Predicate<Appointment> startsAfter = i -> i.getStart().isAfter(start);
-        Predicate<Appointment> startsBefore = i -> i.getStart().isBefore(start.plusMonths(1));
-
-        Predicate<Appointment> filter = startsAfter.and(startsBefore);
-        items.filtered(filter);
-        return items;
-    }
 }

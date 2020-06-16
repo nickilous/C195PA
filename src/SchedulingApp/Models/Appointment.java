@@ -1,94 +1,147 @@
 package SchedulingApp.Models;
 
+import SchedulingApp.DataBase.DataBaseManager;
+import SchedulingApp.Exceptions.InvalidAppointmentException;
+import SchedulingApp.Exceptions.InvalidTimeAppointmentException;
+import SchedulingApp.Exceptions.OverlappingAppointmentException;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.collections.ObservableList;
+
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class Appointment {
-    int appointmentId;
-    int customerId;
-    int userId;
-    String title;
-    String description;
-    String location;
-    String contact;
-    String type;
-    String url;
-    ZonedDateTime start;
-    ZonedDateTime end;
+    private IntegerProperty appointmentId = new SimpleIntegerProperty();
+    private IntegerProperty customerId = new SimpleIntegerProperty();
+    private IntegerProperty userId = new SimpleIntegerProperty();
+    private StringProperty title = new SimpleStringProperty();
+    private StringProperty description = new SimpleStringProperty();
+    private StringProperty location = new SimpleStringProperty();
+    private StringProperty contact = new SimpleStringProperty();
+    private StringProperty type = new SimpleStringProperty();
+    private StringProperty url = new SimpleStringProperty();
+    private ZonedDateTime start;
+    private ZonedDateTime end;
 
-    public int getUserId(){
-        return userId;
+    private Customer customer = new Customer();
+
+    public Appointment() {
     }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
+    public final int getAppointmentId() {
+        return appointmentId.get();
     }
 
-    public int getAppointmentId() {
+    public final void setAppointmentId(int appointmentId) {
+        this.appointmentId.set(appointmentId);
+    }
+
+    public IntegerProperty appointmentIdProperty() {
         return appointmentId;
     }
 
-    public void setAppointmentId(int appointmentId) {
-        this.appointmentId = appointmentId;
+    public final int getCustomerId() {
+        return customerId.get();
     }
 
-    public int getCustomerId() {
+    public final void setCustomerId(int customerId) {
+        this.customerId.set(customerId);
+    }
+
+    public IntegerProperty customerIdProperty() {
         return customerId;
     }
 
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
+    public final int getUserId() {
+        return userId.get();
+    }
+
+    public final void setUserId(int userId) {
+        this.userId.set(userId);
+    }
+
+    public IntegerProperty userIdProperty() {
+        return userId;
     }
 
     public String getTitle() {
-        return title;
+        return title.get();
     }
 
     public void setTitle(String title) {
-        this.title = title;
+        this.title.set(title);
+    }
+
+    public StringProperty titleProperty() {
+        return title;
     }
 
     public String getDescription() {
-        return description;
+        return description.get();
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description.set(description);
+    }
+
+    public StringProperty descriptionProperty() {
+        return description;
     }
 
     public String getLocation() {
-        return location;
+        return location.get();
     }
 
     public void setLocation(String location) {
-        this.location = location;
+        this.location.set(location);
+    }
+
+    public StringProperty locationProperty() {
+        return location;
     }
 
     public String getContact() {
-        return contact;
+        return contact.get();
     }
 
     public void setContact(String contact) {
-        this.contact = contact;
+        this.contact.set(contact);
+    }
+
+    public StringProperty contactProperty() {
+        return contact;
     }
 
     public String getType() {
-        return type;
+        return type.get();
     }
 
     public void setType(String type) {
-        this.type = type;
+        this.type.set(type);
+    }
+
+    public StringProperty typeProperty() {
+        return type;
     }
 
     public String getUrl() {
-        return url;
+        return url.get();
     }
 
     public void setUrl(String url) {
-        this.url = url;
+        this.url.set(url);
+    }
+
+    public StringProperty urlProperty() {
+        return url;
     }
 
     public ZonedDateTime getStart() {
@@ -107,51 +160,72 @@ public class Appointment {
         this.end = end;
     }
 
-    // Validation
-    public static String isAppointmentValid(Customer customer, String title, String description, String location,
-                                            LocalDate appointmentDate, String startHour, String startMinute, String startAmPm,
-                                            String endHour, String endMinute, String endAmPm) throws NumberFormatException {
-        ResourceBundle rb = ResourceBundle.getBundle("Appointment", Locale.getDefault());
-        String errorMessage = "";
-        try {
-            if (customer == null) {
-                errorMessage = errorMessage + rb.getString("errorCustomer");
-            }
-            if (title.length() == 0) {
-                errorMessage = errorMessage + rb.getString("errorTitle");
-            }
-            if (description.length() == 0) {
-                errorMessage = errorMessage + rb.getString("errorDescription");
-            }
-            if (location.length() == 0) {
-                errorMessage = errorMessage + rb.getString("errorLocation");
-            }
-            if (appointmentDate == null || startHour.equals("") || startMinute.equals("") || startAmPm.equals("") ||
-                    endHour.equals("") || endMinute.equals("") || endAmPm.equals("")) {
-                errorMessage = errorMessage + rb.getString("errorStartEndIncomplete");
-            }
-            if (Integer.parseInt(startHour) < 1 || Integer.parseInt(startHour) > 12 || Integer.parseInt(endHour) < 1 || Integer.parseInt(endHour) > 12 ||
-                    Integer.parseInt(startMinute) < 0 || Integer.parseInt(startMinute) > 59 || Integer.parseInt(endMinute) < 0 || Integer.parseInt(endMinute) > 59) {
-                errorMessage = errorMessage + rb.getString("errorStartEndInvalidTime");
-            }
-            if ((startAmPm.equals("PM") && endAmPm.equals("AM")) || (startAmPm.equals(endAmPm) && Integer.parseInt(startHour) != 12 && Integer.parseInt(startHour) > Integer.parseInt(endHour)) ||
-                    (startAmPm.equals(endAmPm) && startHour.equals(endHour) && Integer.parseInt(startMinute) > Integer.parseInt(endMinute))) {
-                errorMessage = errorMessage + rb.getString("errorStartAfterEnd");
-            }
-            if ((Integer.parseInt(startHour) < 9 && startAmPm.equals("AM")) || (Integer.parseInt(endHour) < 9 && endAmPm.equals("AM")) ||
-                    (Integer.parseInt(startHour) >= 5 && Integer.parseInt(startHour) < 12 && startAmPm.equals("PM")) || (Integer.parseInt(endHour) >= 5 && Integer.parseInt(endHour) < 12 && endAmPm.equals("PM")) ||
-                    (Integer.parseInt(startHour) == 12 && startAmPm.equals("AM")) || (Integer.parseInt(endHour)) == 12 && endAmPm.equals("AM")) {
-                errorMessage = errorMessage + rb.getString("errorStartEndOutsideHours");
-            }
-            if (appointmentDate.getDayOfWeek().toString().toUpperCase().equals("SATURDAY") || appointmentDate.getDayOfWeek().toString().toUpperCase().equals("SUNDAY")) {
-                errorMessage = errorMessage + rb.getString("errorDateIsWeekend");
-            }
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+
+    public boolean isValidInput() throws InvalidAppointmentException, InvalidTimeAppointmentException {
+        if (this.customer == null) {
+            throw new InvalidAppointmentException("There was no customer selected!");
         }
-        catch (NumberFormatException e) {
-            errorMessage = errorMessage + rb.getString("errorStartEndInteger");
+        if (this.title.get().equals("")) {
+            throw new InvalidAppointmentException("You must enter a title!");
         }
-        finally {
-            return errorMessage;
+        if (this.description.get().equals("")) {
+            throw new InvalidAppointmentException("You must enter a description!");
         }
+        if (this.location.get().equals("")) {
+            throw new InvalidAppointmentException("You must enter a location!");
+        }
+        if (this.contact.get().equals("")) {
+            throw new InvalidAppointmentException("You must enter a contact!");
+        }
+        if (this.type.get().equals("")) {
+            throw new InvalidAppointmentException("You must enter a type!");
+        }
+        if (this.url.get().equals("")) {
+            throw new InvalidAppointmentException("You must enter a url!");
+        }
+        isValidTime();
+        return true;
+    }
+
+    public boolean isValidTime() throws InvalidTimeAppointmentException {
+        LocalTime midnight = LocalTime.MIDNIGHT;
+        LocalDate apptStartDate = this.start.toLocalDate();
+        LocalTime apptStartTime = this.start.toLocalTime();
+        LocalDate apptEndDate = this.end.toLocalDate();
+        LocalTime apptEndTime = this.end.toLocalTime();
+        int weekDay = apptStartDate.getDayOfWeek().getValue();
+
+        if (!apptStartDate.isEqual(apptEndDate)) {
+            throw new InvalidTimeAppointmentException("An appoinment can only be a single day!");
+        }
+        if (weekDay == 6 || weekDay == 7) {
+            throw new InvalidTimeAppointmentException("An appointment can only be scheduled on weekdays!");
+        }
+        if (apptStartTime.isBefore(midnight.plusHours(8))) {
+            throw new InvalidTimeAppointmentException("An appointment cannot be scheduled before normal business hours!");
+        }
+        if (apptEndTime.isAfter(midnight.plusHours(17))) {
+            throw new InvalidTimeAppointmentException("An appointment cannot be scheduled after normal business hours!");
+        }
+        if (apptStartDate.isBefore(LocalDate.now()) || apptStartTime.isBefore(LocalTime.MIDNIGHT)) {
+            throw new InvalidTimeAppointmentException("An appointment cannot be scheduled in the past!");
+        }
+        return true;
+    }
+
+
+    public boolean isNotOverlapping() throws OverlappingAppointmentException {
+        ObservableList<Appointment> overlappingAppt = DataBaseManager.getOverlappingAppts(this.start.toLocalDateTime(), this.end.toLocalDateTime());
+        if (overlappingAppt.size() > 1) {
+            throw new OverlappingAppointmentException("An appointment cannot be scheduled at the same time as another appointment!");
+        }
+        return true;
     }
 }

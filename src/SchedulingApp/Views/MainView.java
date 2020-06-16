@@ -3,8 +3,11 @@ package SchedulingApp.Views;
 import SchedulingApp.AppState.State;
 import SchedulingApp.Models.Appointment;
 import SchedulingApp.Models.Customer;
+import SchedulingApp.ViewController.AddAppointmentViewController;
 import SchedulingApp.ViewController.AddModifyCustomerViewController;
 import SchedulingApp.ViewController.MainViewController;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -27,7 +30,6 @@ public class MainView {
     VBox addAppointmentButtonsHBox = new VBox();
     VBox addCustomerButtonsHBox = new VBox();
 
-    HBox toggleButtonsHBox = new HBox();
 
     TabPane tpCalendar = new TabPane();
     Tab tWeek = new Tab("Week");
@@ -54,10 +56,6 @@ public class MainView {
     TableColumn end = new TableColumn("End");
     TableColumn type = new TableColumn("type");
 
-    ToggleButton monthToggleButton = new ToggleButton();
-    ToggleButton weekToggleButton = new ToggleButton();
-    ToggleGroup chooseMonthWeekGroup = new ToggleGroup();
-
     BorderPane mainBorderPane = new BorderPane();
 
     TitledPane addCustomerTitlePane = new TitledPane();
@@ -70,9 +68,14 @@ public class MainView {
     Button updateAppointmentButton = new Button();
     Button deleteAppointmentButton = new Button();
 
+    BooleanProperty isWeek = new SimpleBooleanProperty();
 
     public MainView(MainViewController controller){
+        isWeek.set(true);
+
         this.controller = controller;
+        this.controller.isWeekProperty().bind(isWeek);
+
         State.addListListeners();
 
         mainAnchorPane.getChildren().add(mainBorderPane);
@@ -83,12 +86,13 @@ public class MainView {
         mainBorderPane.prefWidth(mainAnchorPane.getPrefWidth());
         mainBorderPane.prefHeight(mainAnchorPane.getPrefHeight());
 
-        mainBorderPane.setTop(toggleButtonsHBox);
+        mainBorderPane.setTop(new Label("Select a Customer to See Appointments"));
         mainBorderPane.setCenter(tvCustomers);
 
         tpCalendar.getTabs().addAll(tWeek, tMonth);
 
-        setupTopBorderPane();
+
+
         setupLeftBorderPane();
         setupRightBoarderPane();
         setupTitlePanes();
@@ -96,30 +100,6 @@ public class MainView {
         setupButtonsUI();
     }
 
-    private void setupTopBorderPane(){
-        weekToggleButton.setText("Week");
-        monthToggleButton.setText("Month");
-        weekToggleButton.setUserData("week");
-        monthToggleButton.setUserData("month");
-        weekToggleButton.setToggleGroup(chooseMonthWeekGroup);
-        monthToggleButton.setToggleGroup(chooseMonthWeekGroup);
-        toggleButtonsHBox.getChildren().add(weekToggleButton);
-        toggleButtonsHBox.getChildren().add(monthToggleButton);
-        toggleButtonsHBox.setAlignment(Pos.CENTER);
-        chooseMonthWeekGroup.selectToggle(weekToggleButton);
-        chooseMonthWeekGroup.selectedToggleProperty().addListener((obs, oldValue, newValue) ->{
-            //TODO: set listener for toggle
-            LocalDate lt = LocalDate.now();
-            YearMonth ym = YearMonth.now();
-            if(newValue.getUserData() == "week"){
-
-            } else {
-
-            }
-            System.out.println("Old Value " + oldValue);
-            System.out.println("new Value " + newValue);
-        });
-    }
     private void setupTitlePanes(){
         addCustomerTitlePane.setText("Customer Controls");
         addAppointmentTitlePane.setText("Appointment Controls");
@@ -145,10 +125,10 @@ public class MainView {
         leftVBox.prefWidth(184);
     }
     private void setupRightBoarderPane(){
+        tWeek.setContent(tvAppointments);
         tWeek.setOnSelectionChanged (e -> {
             if (tWeek.isSelected()) {
-                controller.calendarLabel(true);
-                tvAppointments.setItems(controller.getAppointmentsByWeek(controller.getTime()));
+                isWeek.set(true);
                 tWeek.setContent(tvAppointments);
             } else {
                 tWeek.setContent(null);
@@ -156,15 +136,13 @@ public class MainView {
         });
         tMonth.setOnSelectionChanged (e ->{
             if(tMonth.isSelected()){
-                controller.calendarLabel(false);
-                tvAppointments.setItems(controller.getAppointmentsByMonth(controller.getTime()));
+                isWeek.set(false);
                 tMonth.setContent(tvAppointments);
             } else {
                 tMonth.setContent(null);
             }
-        }
+        });
 
-        );
         tpCalendar.getSelectionModel().select(tWeek);
         vbCalendarLabel.textProperty().bind(controller.calendarLabelProperty());
 
@@ -191,14 +169,22 @@ public class MainView {
         btBackward.setText("<");
 
         btForward.setOnAction((event) ->{
-            //TODO
+            controller.handleForward();
         });
         btBackward.setOnAction((event) -> {
-            //TODO
+            controller.handleBackward();
         });
 
         addAppointmentButton.setOnAction((event) -> {
-            //TODO
+            State.setModifying(false);
+            AddAppointmentViewController addAppointmentViewController = new AddAppointmentViewController(controller.getSelectedCustomer());
+            AddAppointmentView addAppointmentView = new AddAppointmentView(addAppointmentViewController);
+            Parent addAppointmentViewParent = addAppointmentView.getView();
+            Scene mainViewScene = new Scene(addAppointmentViewParent);
+            Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
+            winAddProduct.setTitle("Add Appointment");
+            winAddProduct.setScene(mainViewScene);
+            winAddProduct.show();
         });
         updateAppointmentButton.setOnAction((event) -> {
             //TODO
@@ -281,6 +267,7 @@ public class MainView {
         country.setCellValueFactory(new PropertyValueFactory<Customer, String>("country"));
 
         tvCustomers.setItems(State.getCustomers());
+        tvCustomers.getSelectionModel().selectFirst();
 
         title.setCellValueFactory(new PropertyValueFactory<Appointment, String>("title"));
         description.setCellValueFactory(new PropertyValueFactory<Appointment, String>("description"));
@@ -288,7 +275,7 @@ public class MainView {
         end.setCellValueFactory(new PropertyValueFactory<Appointment, String>("end"));
         type.setCellValueFactory(new PropertyValueFactory<Appointment, String>("type"));
 
-        tvAppointments.setItems(controller.getAppointmentsByWeek());
+        tvAppointments.setItems(controller.getCurrentAppointments());
     }
 
 

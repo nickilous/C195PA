@@ -5,14 +5,10 @@ import SchedulingApp.Exceptions.UserNotValidException;
 import SchedulingApp.Models.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Alert;
 
-import javax.xml.transform.Result;
 import java.sql.*;
 import java.time.*;
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.ResourceBundle;
+
 
 public class DataBaseManager {
     private static String SELECT = "SELECT ";
@@ -207,6 +203,51 @@ public class DataBaseManager {
         }
         return rs;
     }
+    public static ObservableList<Appointment> getOverlappingAppts(LocalDateTime start, LocalDateTime end) {
+        ObservableList<Appointment> getOverlappedAppts = FXCollections.observableArrayList();
+        String getOverlappingApptsSQL = "SELECT * FROM appointment "
+                + "WHERE (start >= ? AND end <= ?) "
+                + "OR (start <= ? AND end >= ?) "
+                + "OR (start BETWEEN ? AND ? OR end BETWEEN ? AND ?)";
+
+        try {
+            LocalDateTime startLDT = start.atZone(State.getzId()).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+            LocalDateTime endLDT = end.atZone(State.getzId()).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+            PreparedStatement stmt = DBConnection.getConnection().prepareStatement(getOverlappingApptsSQL);
+            stmt.setTimestamp(1, Timestamp.valueOf(startLDT));
+            stmt.setTimestamp(2, Timestamp.valueOf(endLDT));
+            stmt.setTimestamp(3, Timestamp.valueOf(startLDT));
+            stmt.setTimestamp(4, Timestamp.valueOf(endLDT));
+            stmt.setTimestamp(5, Timestamp.valueOf(startLDT));
+            stmt.setTimestamp(6, Timestamp.valueOf(endLDT));
+            stmt.setTimestamp(7, Timestamp.valueOf(startLDT));
+            stmt.setTimestamp(8, Timestamp.valueOf(endLDT));
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Appointment overlappedAppt = new Appointment();
+                overlappedAppt.setAppointmentId(rs.getInt("appointmentId"));
+                overlappedAppt.setTitle(rs.getString("title"));
+                overlappedAppt.setDescription(rs.getString("description"));
+                overlappedAppt.setLocation(rs.getString("location"));
+                overlappedAppt.setContact(rs.getString("contact"));
+                overlappedAppt.setType(rs.getString("type"));
+                overlappedAppt.setUrl(rs.getString("url"));
+                LocalDateTime startUTC = rs.getTimestamp("start").toLocalDateTime();
+                LocalDateTime endUTC = rs.getTimestamp("end").toLocalDateTime();
+                ZonedDateTime startLocal = ZonedDateTime.ofInstant(startUTC.toInstant(ZoneOffset.UTC), State.getzId());
+                ZonedDateTime endLocal = ZonedDateTime.ofInstant(endUTC.toInstant(ZoneOffset.UTC), State.getzId());
+                overlappedAppt.setStart(startLocal);
+                overlappedAppt.setEnd(endLocal);
+                getOverlappedAppts.add(overlappedAppt);
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return getOverlappedAppts;
+    }
+
 
     public static void updateAddress(Address address){
         /**
@@ -303,5 +344,8 @@ public class DataBaseManager {
         } catch (SQLException ex){
             System.out.println(ex.getMessage());
         }
+    }
+    public static void saveAppointment(Appointment appt){
+        //TODO
     }
 }

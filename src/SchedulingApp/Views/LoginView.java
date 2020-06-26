@@ -6,11 +6,6 @@ import SchedulingApp.Exceptions.UserFieldsEmptyException;
 import SchedulingApp.Exceptions.UserNotValidException;
 import SchedulingApp.ViewController.LoginViewController;
 import SchedulingApp.ViewController.MainViewController;
-import javafx.beans.binding.StringBinding;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -31,6 +26,9 @@ import javafx.stage.Stage;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Programatic UI setup and layout
+ */
 public class LoginView {
     LoginViewController controller;
 
@@ -69,18 +67,14 @@ public class LoginView {
 
         setupComboBox();
         setupWelcomeText();
-        setupTextFields();
         setupButtons();
         setupLabels();
         createLayout();
     }
 
     private void createLayout(){
-        //anchorPane.setPrefWidth(300);
-        //anchorPane.setPrefHeight(300);
 
         GridPane loginGridPane = new GridPane();
-
         loginGridPane.setPadding(new Insets(10,10,10,10));
         loginGridPane.setAlignment(Pos.CENTER);
         loginGridPane.setVgap(10);
@@ -100,7 +94,6 @@ public class LoginView {
         loginGridPane.add(btHBox, 1, 4);
 
         anchorPane.getChildren().add(loginGridPane);
-
     }
 
     private void setupWelcomeText(){
@@ -108,11 +101,6 @@ public class LoginView {
         welcomeText.setFont(welcomeFont);
         welcomeText.textProperty().bind(RESOURCE_FACTORY.getStringBinding("welcome"));
         welcomeText.setAlignment(Pos.CENTER);
-    }
-
-    private void setupTextFields(){
-        userName.promptTextProperty().bind(RESOURCE_FACTORY.getStringBinding("username"));
-        password.promptTextProperty().bind(RESOURCE_FACTORY.getStringBinding("password"));
     }
 
     private void setupLabels(){
@@ -147,9 +135,9 @@ public class LoginView {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.titleProperty().bind(RESOURCE_FACTORY.getStringBinding("loginErrorTitle"));
                 if (ex instanceof UserFieldsEmptyException){
-                    alert.contentTextProperty().bind(RESOURCE_FACTORY.getStringBinding("loginErrorEmptyContext"));
+                    alert.contentTextProperty().bind(RESOURCE_FACTORY.getStringBinding("loginErrorEmpty"));
                 } else if( ex instanceof UserNotValidException){
-                    alert.contentTextProperty().bind(RESOURCE_FACTORY.getStringBinding("loginErrorIncompleteContext"));
+                    alert.contentTextProperty().bind(RESOURCE_FACTORY.getStringBinding("loginErrorIncorrect"));
                 }
                 alert.show();
                 System.out.println("Fields Empty");

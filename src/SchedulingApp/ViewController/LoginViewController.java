@@ -8,23 +8,12 @@ import SchedulingApp.DataBase.DataBaseManager;
 import SchedulingApp.Exceptions.UserFieldsEmptyException;
 import SchedulingApp.Exceptions.UserNotValidException;
 import SchedulingApp.Models.User;
-import SchedulingApp.Views.MainView;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.stage.Stage;
 
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -46,7 +35,7 @@ public class LoginViewController {
             loginViewLogger.log(Level.INFO, ex.getMessage());
             throw ex;
         }
-        loginViewLogger.log(Level.INFO, "User logged in");
+        loginViewLogger.log(Level.INFO, "User " + userName +" logged in");
     }
 
     public void handleCancel(){
@@ -58,8 +47,8 @@ public class LoginViewController {
                 .ifPresent((ButtonType response) -> {
                     try {
                         DBConnection.closeConnection();
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
                     }
                     Platform.exit();
                             System.exit(0);

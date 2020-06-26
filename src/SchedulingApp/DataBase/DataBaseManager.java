@@ -111,48 +111,18 @@ public class DataBaseManager {
 
     /**
      *
-     * @param searchKey search key is one of either city, country, address table name
-     * @return next available id in either of the city, country, address table
+     * @param pst the state to find the next id with
+     * @return
      */
-    public static int getNextId(String searchKey){
-        int nextAvailableId = 0;
-        String searchId = searchKey + "Id";
-        try {
-            PreparedStatement pst = DBConnection.getConnection().prepareStatement("SELECT * " +
-                    "FROM " + searchKey + " " +
-                    "ORDER BY " + searchId + ";");
-            ResultSet rs = pst.executeQuery();
-            while (rs.next()){
-                nextAvailableId =  rs.getInt(searchId) + 1;
-            }
-            rs.close();
-        } catch (SQLException ex){
-            System.out.println("Failed get Next Id");
-        }
-        return nextAvailableId;
-    }
-
-    /**
-     *
-     * @param table name of the table to search through
-     * @param searchKey name of the thing to search for must be the name
-     * @return the next available id in the table with the specific city, country
-     */
-    public static int getId(String table, String searchKey){
+    public static int getId(PreparedStatement pst){
         int id = 0;
         try{
-            PreparedStatement pst = DBConnection.getConnection().prepareStatement("SELECT * " +
-                    "FROM " + table +
-                    "WHERE " + table + " = '" + searchKey + "'");
-            ResultSet rs = pst.executeQuery();
-            if (rs.next()) {
-                id = rs.getInt(table + "Id");
-            } else {
-                id = getNextId(table);
+            ResultSet generatedKeys = pst.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                id = generatedKeys.getInt(1);
             }
-            rs.close();
         } catch (SQLException ex){
-            //TODO: add print statement here
+
         }
         return id;
     }
@@ -271,7 +241,8 @@ public class DataBaseManager {
             System.out.println(ex.getMessage());
         }
     }
-    public static void saveAddress(Address address){
+    public static int saveAddress(Address address){
+        int nextId = 0;
         String columnsToSave = "(address, address2, cityId, createDate, createdBy, lastUpdate, lastUpdateBy, phone, postalCode)";
         String dataToSave = "(?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try{
@@ -289,10 +260,32 @@ public class DataBaseManager {
             pst.setString(8, address.getPhone());
             pst.setString(9, address.getPostalCode());
             pst.executeUpdate();
+            nextId = getId(pst);
         } catch (SQLException ex){
             System.out.println(ex.getMessage());
         }
+        return nextId;
     }
+    public static int saveCity(City city) {
+        int nextId = 0;
+        String addCitySQL = String.join(" ",
+                "INSERT INTO city (city, countryId, createDate, createdBy, lastUpdate, lastUpdateBy)",
+                "VALUES (?, ?, NOW(), ?, NOW(), ?)");
+        try {
+            PreparedStatement pst = DBConnection.getConnection().prepareStatement(addCitySQL);
+            pst.setString(1, city.getCity());
+            pst.setInt(2, city.getCountryId());
+            pst.setString(3, State.getUser().getUserName());
+            pst.setString(4, State.getUser().getUserName());
+            pst.executeUpdate();
+            nextId = getId(pst);
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return nextId;
+    }
+
     public static void updateCustomer(Customer customer){
         try{
             PreparedStatement pst = DBConnection.getConnection().prepareStatement(UPDATE + CUSTOMER +
@@ -315,7 +308,8 @@ public class DataBaseManager {
             System.out.println(ex.getMessage());
         }
     }
-    public static void saveCustomer(Customer customer){
+    public static int saveCustomer(Customer customer){
+        int nextId = 0;
         String columnsToSave = "(active, customerName, addressId, createDate, createdBy, lastUpdate, lastUpdateBy)";
         String dataToSave = "(1, ?, ?, ?, ?, ?, ?)";
         try{
@@ -330,9 +324,11 @@ public class DataBaseManager {
             pst.setTimestamp(5, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
             pst.setString(6, State.getUser().getUserName());
             pst.executeUpdate();
+            nextId = getId(pst);
         } catch (SQLException ex){
             System.out.println(ex.getMessage());
         }
+        return nextId;
     }
     public static void deleteCustomer(Customer customer){
         try{
@@ -345,7 +341,83 @@ public class DataBaseManager {
             System.out.println(ex.getMessage());
         }
     }
-    public static void saveAppointment(Appointment appt){
-        //TODO
+
+    public static int saveAppointment(Appointment appt){
+        int nextId = 0;
+        String addAppointmentSQL = String.join(" ",
+                "INSERT INTO appointment (customerId, userId, title, "
+                        + "description, location, contact, type, url, start, end, "
+                        + "createDate, createdBy, lastUpdate, lastUpdateBy) ",
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, NOW(), ?)");
+
+        try {
+            PreparedStatement pst = DBConnection.getConnection().prepareStatement(addAppointmentSQL);
+            pst.setObject(1, appt.getCustomerId());
+            pst.setObject(2, appt.getUserId());
+            pst.setObject(3, appt.getTitle());
+            pst.setObject(4, appt.getDescription());
+            pst.setObject(5, appt.getLocation());
+            pst.setObject(6, appt.getContact());
+            pst.setObject(7, appt.getType());
+            pst.setObject(8, appt.getUrl());
+
+            ZonedDateTime startZDT = appt.getStart().withZoneSameInstant(ZoneId.of("UTC"));
+            ZonedDateTime endZDT = appt.getEnd().withZoneSameInstant(ZoneId.of("UTC"));
+            pst.setTimestamp(10, Timestamp.valueOf(startZDT.toLocalDateTime()));
+            pst.setTimestamp(11, Timestamp.valueOf(endZDT.toLocalDateTime()));
+
+            pst.setString(12, State.getUser().getUserName());
+            pst.setString(13, State.getUser().getUserName());
+            pst.executeUpdate();
+
+            nextId = getId(pst);
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+        return nextId;
+    }
+    public static void updateAppointment(Appointment appointment) {
+        String updateApptSQL = String.join(" ",
+                "UPDATE appointment",
+                "SET customerId=?, userId=?, title=?, description=?, location=?," +
+                        "contact=?, type=?, url=?, start=?, end=?, lastUpdate=NOW(), lastUpdateBy=?",
+                "WHERE appointmentId=?");
+
+        try {
+            PreparedStatement pst = DBConnection.getConnection().prepareStatement(updateApptSQL);
+            pst.setObject(1, appointment.getCustomerId());
+            pst.setObject(2, appointment.getUserId());
+            pst.setObject(3, appointment.getTitle());
+            pst.setObject(4, appointment.getDescription());
+            pst.setObject(5, appointment.getLocation());
+            pst.setObject(6, appointment.getContact());
+            pst.setObject(7, appointment.getType());
+            pst.setObject(8, appointment.getUrl());
+
+            ZonedDateTime startZDT = appointment.getStart().withZoneSameInstant(ZoneId.of("UTC"));
+            ZonedDateTime endZDT = appointment.getEnd().withZoneSameInstant(ZoneId.of("UTC"));
+            pst.setTimestamp(9, Timestamp.valueOf(startZDT.toLocalDateTime()));
+            pst.setTimestamp(10, Timestamp.valueOf(endZDT.toLocalDateTime()));
+
+            pst.setString(11, State.getUser().getUserName());
+            pst.setObject(12, appointment.getAppointmentId());
+            pst.executeUpdate();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void deleteAppointment(Appointment appointment) {
+        String deleteAppointmentSQL = "DELETE FROM appointment WHERE appointmentId = ?";
+
+        try {
+            PreparedStatement pst = DBConnection.getConnection().prepareStatement(deleteAppointmentSQL);
+            pst.setObject(1, appointment.getAppointmentId());
+            pst.executeUpdate();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

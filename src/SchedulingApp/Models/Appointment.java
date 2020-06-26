@@ -31,6 +31,7 @@ public class Appointment {
     private ZonedDateTime start;
     private ZonedDateTime end;
 
+
     private Customer customer = new Customer();
 
     public Appointment() {

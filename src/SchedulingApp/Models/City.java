@@ -1,5 +1,7 @@
 package SchedulingApp.Models;
 
+import SchedulingApp.DataBase.DataBaseManager;
+
 import java.sql.Date;
 import java.sql.Timestamp;
 
@@ -7,10 +9,7 @@ public class City {
     int cityId;
     int countryId;
     String city;
-    Date createDate;
-    User createdBy;
-    Timestamp lastUpdate;
-    User lastUpdatedBy;
+
 
     public City() {
     }
@@ -38,35 +37,4 @@ public class City {
         this.city = city;
     }
 
-    public Date getCreateDate() {
-        return createDate;
-    }
-
-    public void setCreateDate(Date createDate) {
-        this.createDate = createDate;
-    }
-
-    public User getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(User createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Timestamp getLastUpdate() {
-        return lastUpdate;
-    }
-
-    public void setLastUpdate(Timestamp lastUpdate) {
-        this.lastUpdate = lastUpdate;
-    }
-
-    public User getLastUpdatedBy() {
-        return lastUpdatedBy;
-    }
-
-    public void setLastUpdatedBy(User lastUpdatedBy) {
-        this.lastUpdatedBy = lastUpdatedBy;
-    }
 }

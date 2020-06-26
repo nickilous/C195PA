@@ -25,12 +25,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
+
 import javafx.stage.Stage;
 
-import javax.lang.model.AnnotatedConstruct;
-import java.awt.*;
-import java.sql.SQLException;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -143,6 +140,7 @@ public class LoginView {
                 Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
                 winAddProduct.setTitle("Main Screen");
                 winAddProduct.setScene(mainViewScene);
+                winAddProduct.centerOnScreen();
                 winAddProduct.show();
 
             } catch (UserFieldsEmptyException | UserNotValidException ex){

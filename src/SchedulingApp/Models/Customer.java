@@ -1,141 +1,180 @@
 package SchedulingApp.Models;
 
-import SchedulingApp.DataBase.DataBaseManager;
-import SchedulingApp.Exceptions.UserFieldsEmptyException;
 
-import java.sql.Date;
-import java.sql.Timestamp;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import SchedulingApp.Exceptions.InvalidCustomerException;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 
 public class Customer {
-    int customerId;
-    int active;
-    int addressId;
-    int cityId;
-    int countryId;
+    SimpleIntegerProperty customerId = new SimpleIntegerProperty();
+    SimpleIntegerProperty active = new SimpleIntegerProperty();
+    SimpleIntegerProperty addressId = new SimpleIntegerProperty();
+    SimpleIntegerProperty cityId = new SimpleIntegerProperty();
+    SimpleIntegerProperty countryId = new SimpleIntegerProperty();
 
 
-    String customerName;
-    String address;
-    String address2;
-    String postalCode;
-    String phone;
-    String city;
-    String country;
+    StringProperty customerName = new SimpleStringProperty("");
+    StringProperty address = new SimpleStringProperty("");
+    StringProperty address2 = new SimpleStringProperty("");
+    StringProperty postalCode = new SimpleStringProperty("");
+    StringProperty phone = new SimpleStringProperty("");
+    StringProperty city = new SimpleStringProperty("");
+    StringProperty country = new SimpleStringProperty("");
 
 
     public Customer(){
-        customerId = DataBaseManager.getNextId("customer");
-    }
-    public Customer(int customerId){
-        this.customerId = customerId;
     }
 
     public int getCustomerId() {
+        return customerId.get();
+    }
+
+    public SimpleIntegerProperty customerIdProperty() {
         return customerId;
     }
 
     public void setCustomerId(int customerId) {
-        this.customerId = customerId;
-    }
-
-    public String getCustomerName() {
-        return customerName;
-    }
-
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
-    }
-
-    public int getAddressId() {
-        return addressId;
-    }
-
-    public void setAddressId(int addressId) {
-        this.addressId = addressId;
+        this.customerId.set(customerId);
     }
 
     public int getActive() {
+        return active.get();
+    }
+
+    public SimpleIntegerProperty activeProperty() {
         return active;
     }
 
     public void setActive(int active) {
-        this.active = active;
+        this.active.set(active);
+    }
+
+    public int getAddressId() {
+        return addressId.get();
+    }
+
+    public SimpleIntegerProperty addressIdProperty() {
+        return addressId;
+    }
+
+    public void setAddressId(int addressId) {
+        this.addressId.set(addressId);
     }
 
     public int getCityId() {
+        return cityId.get();
+    }
+
+    public SimpleIntegerProperty cityIdProperty() {
         return cityId;
     }
 
     public void setCityId(int cityId) {
-        this.cityId = cityId;
+        this.cityId.set(cityId);
     }
 
     public int getCountryId() {
+        return countryId.get();
+    }
+
+    public SimpleIntegerProperty countryIdProperty() {
         return countryId;
     }
 
     public void setCountryId(int countryId) {
-        this.countryId = countryId;
+        this.countryId.set(countryId);
+    }
+
+    public String getCustomerName() {
+        return customerName.get();
+    }
+
+    public StringProperty customerNameProperty() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName.set(customerName);
     }
 
     public String getAddress() {
+        return address.get();
+    }
+
+    public StringProperty addressProperty() {
         return address;
     }
 
     public void setAddress(String address) {
-        this.address = address;
+        this.address.set(address);
     }
 
     public String getAddress2() {
+        return address2.get();
+    }
+
+    public StringProperty address2Property() {
         return address2;
     }
 
     public void setAddress2(String address2) {
-        this.address2 = address2;
+        this.address2.set(address2);
     }
 
     public String getPostalCode() {
+        return postalCode.get();
+    }
+
+    public StringProperty postalCodeProperty() {
         return postalCode;
     }
 
     public void setPostalCode(String postalCode) {
-        this.postalCode = postalCode;
+        this.postalCode.set(postalCode);
     }
 
     public String getPhone() {
+        return phone.get();
+    }
+
+    public StringProperty phoneProperty() {
         return phone;
     }
 
     public void setPhone(String phone) {
-        this.phone = phone;
+        this.phone.set(phone);
     }
 
     public String getCity() {
+        return city.get();
+    }
+
+    public StringProperty cityProperty() {
         return city;
     }
 
     public void setCity(String city) {
-        this.city = city;
+        this.city.set(city);
     }
 
     public String getCountry() {
+        return country.get();
+    }
+
+    public StringProperty countryProperty() {
         return country;
     }
 
     public void setCountry(String country) {
-        this.country = country;
+        this.country.set(country);
     }
 
-    // Validation
-    public static void isCustomerValid(String customerName) throws UserFieldsEmptyException {
-        String errorMessage = "";
-        if (customerName.length() == 0) {
-            errorMessage = errorMessage + "Customer Name Field Empty";
+    public static boolean isValidInput(Customer Cust) throws InvalidCustomerException {
+        if (Cust.getCustomerName().equals("")) {
+            throw new InvalidCustomerException("You must enter a customer name!");
         }
-        if (!errorMessage.isEmpty()){
-            throw new UserFieldsEmptyException(errorMessage);
-        }
+        return true;
     }
 }

@@ -3,7 +3,8 @@ package SchedulingApp.ViewController;
 import SchedulingApp.AppState.State;
 import SchedulingApp.Models.Appointment;
 import SchedulingApp.Models.Customer;
-import SchedulingApp.Views.AddModifyCustomerView;
+import SchedulingApp.Views.ApptView;
+import SchedulingApp.Views.CustomerView;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -15,6 +16,7 @@ import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 
 import java.text.DateFormatSymbols;
@@ -26,6 +28,7 @@ import java.util.function.Predicate;
 
 public class MainViewController {
     private Customer customer;
+    private Appointment appointment;
     private LocalDateTime startOfWeek;
     private LocalDateTime startOfMonth;
     private StringProperty calendarLabel = new SimpleStringProperty();
@@ -108,6 +111,9 @@ public class MainViewController {
         filterAppointmentsTimeCustomer();
     }
 
+    public void triggerFilterChange(){
+        filterAppointmentsTimeCustomer();
+    }
     private void filterAppointmentsTimeCustomer(){
         currentAppointments.clear();
         FilteredList<Appointment> items = new FilteredList<>(State.getAppointments());
@@ -152,6 +158,13 @@ public class MainViewController {
         return customer;
     }
 
+    public void setSelectedAppointment(Appointment appointment) {
+        this.appointment = appointment;
+    }
+    public Appointment getSelectedAppointment() {
+        return appointment;
+    }
+
     public StringProperty calendarLabelProperty() {
         return calendarLabel;
     }
@@ -176,9 +189,9 @@ public class MainViewController {
     }
 
     public void loadAddCustomerView(Event event){
-        AddModifyCustomerViewController addModifyCustomerViewController = new AddModifyCustomerViewController();
-        AddModifyCustomerView addModifyCustomerView = new AddModifyCustomerView(addModifyCustomerViewController);
-        Parent addCustomerViewParent = addModifyCustomerView.getView();
+        CustomerViewController custViewController = new CustomerViewController();
+        CustomerView addView = new CustomerView(custViewController);
+        Parent addCustomerViewParent = addView.getView();
         Scene mainViewScene = new Scene(addCustomerViewParent);
         Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
         winAddProduct.setTitle("Add Customer");
@@ -186,15 +199,66 @@ public class MainViewController {
         winAddProduct.show();
     }
     public void loadModifyCustomerView(Event event){
-        AddModifyCustomerViewController addModifyCustomerViewController = new AddModifyCustomerViewController(customer);
-        AddModifyCustomerView addModifyCustomerView = new AddModifyCustomerView(addModifyCustomerViewController);
-        Parent addCustomerViewParent = addModifyCustomerView.getView();
-        Scene mainViewScene = new Scene(addCustomerViewParent);
+        if(!(customer == null)) {
+            CustomerViewController custViewController = new CustomerViewController(customer);
+            CustomerView addView = new CustomerView(custViewController);
+            Parent addCustomerViewParent = addView.getView();
+            Scene mainViewScene = new Scene(addCustomerViewParent);
+            Stage winAddProduct = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            winAddProduct.setTitle("Modify Customer");
+            winAddProduct.setScene(mainViewScene);
+            winAddProduct.show();
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Customer not selected");
+            alert.setHeaderText("Error: Customer Not Selected");
+            alert.setContentText("Please Select a Customer");
+            alert.showAndWait();
+        }
+    }
+
+    public void loadAddAppointmentView(Event event){
+        ApptViewController apptViewController = new ApptViewController(customer,
+                false);
+
+        ApptView apptView = new ApptView(apptViewController);
+        Parent addAppointmentViewParent = apptView.getView();
+        Scene mainViewScene = new Scene(addAppointmentViewParent);
         Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
-        winAddProduct.setTitle("Modify Customer");
+        winAddProduct.setTitle("Add Appointment");
+        winAddProduct.setScene(mainViewScene);
+        winAddProduct.show();
+    }
+    public void loadModifyAppointmentView(Event event){
+        ApptViewController apptViewController = new ApptViewController(customer,
+                appointment,
+                true);
+
+        ApptView apptView = new ApptView(apptViewController);
+        Parent addAppointmentViewParent = apptView.getView();
+        Scene mainViewScene = new Scene(addAppointmentViewParent);
+        Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
+        winAddProduct.setTitle("Modify Appointment");
         winAddProduct.setScene(mainViewScene);
         winAddProduct.show();
     }
 
+    public void handleDeleteCustomer(Event event){
+        if(!(customer == null)){
+            State.deleteCustomer(customer);
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Customer not selected");
+            alert.setHeaderText("Error: Customer Not Selected");
+            alert.setContentText("Please Select a Customer");
+            alert.showAndWait();
+        }
+    }
+    public void handleDeleteAppointment(Event event){
+        if(!(appointment == null)) {
+            State.deleteAppointment(appointment);
+            triggerFilterChange();
+        }
+    }
 
 }

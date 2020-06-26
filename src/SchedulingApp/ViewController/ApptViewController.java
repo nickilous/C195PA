@@ -6,29 +6,44 @@ import SchedulingApp.Exceptions.InvalidTimeAppointmentException;
 import SchedulingApp.Exceptions.OverlappingAppointmentException;
 import SchedulingApp.Models.Appointment;
 import SchedulingApp.Models.Customer;
+import SchedulingApp.Views.MainView;
 import javafx.event.ActionEvent;
 
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.SpinnerValueFactory;
 
+import javafx.stage.Stage;
 import javafx.util.converter.LocalTimeStringConverter;
 
 
 import java.net.URL;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 
-public class AddAppointmentViewController {
+public class ApptViewController {
     Customer customer;
-    public AddAppointmentViewController(Customer customer){
+    Appointment appointment;
+    boolean isModifying;
+    public ApptViewController(Customer customer, boolean isModifying){
         this.customer = customer;
+        this.isModifying = isModifying;
+        setDateTime();
     }
+    public ApptViewController(Customer customer, Appointment appointment, boolean isModifying){
+        this.customer = customer;
+        this.appointment = appointment;
+        this.isModifying = isModifying;
+        setDateTime();
+    }
+
     public static Appointment appt = new Appointment();
+
     private final DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private final DateTimeFormatter formatTime = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -36,6 +51,20 @@ public class AddAppointmentViewController {
 
     public Customer getCustomer() {
         return customer;
+    }
+
+    public Appointment getAppointment() {
+        return appointment;
+    }
+    public void setAppointment(Appointment appointment) {
+        this.appointment = appointment;
+    }
+
+    public boolean isModifying() {
+        return isModifying;
+    }
+    public void setModifying(boolean modifying) {
+        isModifying = modifying;
     }
 
     public DateTimeFormatter getFormatDate() {
@@ -62,50 +91,20 @@ public class AddAppointmentViewController {
 
 
     public void handleSave(Appointment appt) {
-        Alert saveAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        saveAlert.setTitle("Save Appointment Modifications");
-        saveAlert.setHeaderText("Are you sure you want to save?");
-        saveAlert.setContentText("Press OK to save the addition. \nPress Cancel to stay on this screen.");
-        saveAlert.showAndWait();
-        if (saveAlert.getResult() == ButtonType.OK) {
-            try {
-                if (appt.isValidInput() && appt.isNotOverlapping()) {
-                    State.addAppointment();
-                }
-            }
-            catch (InvalidAppointmentException e) {
-                Alert exAlert = new Alert(Alert.AlertType.ERROR);
-                exAlert.setTitle("Appointment Field Empty");
-                exAlert.setHeaderText("All Fields Must Be Filled");
-                exAlert.setContentText(e.getMessage());
-                exAlert.showAndWait().filter(response -> response == ButtonType.OK);
-            }
-            catch (OverlappingAppointmentException e){
-                Alert exAlert = new Alert(Alert.AlertType.ERROR);
-                exAlert.setTitle("Appointment Over Laps ");
-                exAlert.setHeaderText("This appointment overlaps with another.");
-                exAlert.setContentText(e.getMessage());
-                exAlert.showAndWait().filter(response -> response == ButtonType.OK);
-            }
-            catch (InvalidTimeAppointmentException e){
-                Alert exAlert = new Alert(Alert.AlertType.ERROR);
-                exAlert.setTitle("Invalid Appointment Time ");
-                exAlert.setHeaderText("This appointment has an invalid time");
-                exAlert.setContentText(e.getMessage());
-                exAlert.showAndWait().filter(response -> response == ButtonType.OK);
-            }
-        }
-        else {
-            saveAlert.close();
+        if(isModifying) {
+            State.updateAppointment(appt);
+        } else {
+            State.addAppointment(appt);
         }
     }
-
-
-
-
-    public void setDefaultDateTime() {
-        svfStart.setValue(LocalTime.of(8, 00));
-        svfEnd.setValue(LocalTime.of(17, 00));
+    public void setDateTime() {
+        if(isModifying){
+            svfStart.setValue(LocalTime.of(appointment.getStart().getHour(), appointment.getStart().getMinute()));
+            svfEnd.setValue(LocalTime.of(appointment.getEnd().getHour(), appointment.getEnd().getMinute()));
+        } else {
+            svfStart.setValue(LocalTime.of(8, 00));
+            svfEnd.setValue(LocalTime.of(17, 00));
+        }
     }
 
     SpinnerValueFactory svfStart = new SpinnerValueFactory<LocalTime>() {
@@ -113,12 +112,12 @@ public class AddAppointmentViewController {
             setConverter(new LocalTimeStringConverter(formatTime,null));
         }
         @Override public void decrement(int steps) {
-            LocalTime time = (LocalTime) getValue();
+            LocalTime time = getValue();
             setValue(time.minusHours(steps));
             setValue(time.minusMinutes(16 - steps));
         }
         @Override public void increment(int steps) {
-            LocalTime time = (LocalTime) getValue();
+            LocalTime time = getValue();
             setValue(time.plusHours(steps));
             setValue(time.plusMinutes(steps + 14));
         }
@@ -134,13 +133,13 @@ public class AddAppointmentViewController {
         }
         @Override
         public void decrement(int steps) {
-            LocalTime time = (LocalTime) getValue();
+            LocalTime time = getValue();
             setValue(time.minusHours(steps));
             setValue(time.minusMinutes(16 - steps));
         }
         @Override
         public void increment(int steps) {
-            LocalTime time = (LocalTime) getValue();
+            LocalTime time = getValue();
             setValue(time.plusHours(steps));
             setValue(time.plusMinutes(steps + 14));
         }
@@ -156,6 +155,6 @@ public class AddAppointmentViewController {
      * @param rb
      */
     public void initialize(URL url, ResourceBundle rb) {
-        setDefaultDateTime();
+        setDateTime();
     }
 }

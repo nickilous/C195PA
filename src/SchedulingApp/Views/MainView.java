@@ -3,12 +3,11 @@ package SchedulingApp.Views;
 import SchedulingApp.AppState.State;
 import SchedulingApp.Models.Appointment;
 import SchedulingApp.Models.Customer;
-import SchedulingApp.ViewController.AddAppointmentViewController;
-import SchedulingApp.ViewController.AddModifyCustomerViewController;
+import SchedulingApp.ViewController.ApptViewController;
+import SchedulingApp.ViewController.CustomerViewController;
 import SchedulingApp.ViewController.MainViewController;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -16,9 +15,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-
-import java.time.LocalDate;
-import java.time.YearMonth;
 
 public class MainView {
 
@@ -79,8 +75,8 @@ public class MainView {
         State.addListListeners();
 
         mainAnchorPane.getChildren().add(mainBorderPane);
-        mainAnchorPane.setPrefHeight(800);
-        mainAnchorPane.setPrefWidth(1200);
+        //mainAnchorPane.setPrefHeight(800);
+        //mainAnchorPane.setPrefWidth(1200);
 
         mainBorderPane.setLeft(leftVBox);
         mainBorderPane.prefWidth(mainAnchorPane.getPrefWidth());
@@ -176,65 +172,23 @@ public class MainView {
         });
 
         addAppointmentButton.setOnAction((event) -> {
-            State.setModifying(false);
-            AddAppointmentViewController addAppointmentViewController = new AddAppointmentViewController(controller.getSelectedCustomer());
-            AddAppointmentView addAppointmentView = new AddAppointmentView(addAppointmentViewController);
-            Parent addAppointmentViewParent = addAppointmentView.getView();
-            Scene mainViewScene = new Scene(addAppointmentViewParent);
-            Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
-            winAddProduct.setTitle("Add Appointment");
-            winAddProduct.setScene(mainViewScene);
-            winAddProduct.show();
+            controller.loadAddAppointmentView(event);
         });
         updateAppointmentButton.setOnAction((event) -> {
-            //TODO
+            controller.loadModifyAppointmentView(event);
         });
         deleteAppointmentButton.setOnAction((event) -> {
-            //TODO
+            controller.handleDeleteAppointment(event);
         });
 
         addCustomerButton.setOnAction((event) -> {
-            State.setModifying(false);
-            AddModifyCustomerViewController addModifyCustomerViewController = new AddModifyCustomerViewController();
-            AddModifyCustomerView addModifyCustomerView = new AddModifyCustomerView(addModifyCustomerViewController);
-            Parent addCustomerViewParent = addModifyCustomerView.getView();
-            Scene mainViewScene = new Scene(addCustomerViewParent);
-            Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
-            winAddProduct.setTitle("Add Customer");
-            winAddProduct.setScene(mainViewScene);
-            winAddProduct.show();
+            controller.loadAddCustomerView(event);
         });
         updateCustomerButton.setOnAction((event) -> {
-            Customer selectedCustomer = controller.getSelectedCustomer();
-            if(!(selectedCustomer == null)) {
-                State.setModifying(true);
-                AddModifyCustomerViewController addModifyCustomerViewController = new AddModifyCustomerViewController(controller.getSelectedCustomer());
-                AddModifyCustomerView addModifyCustomerView = new AddModifyCustomerView(addModifyCustomerViewController);
-                Parent addCustomerViewParent = addModifyCustomerView.getView();
-                Scene mainViewScene = new Scene(addCustomerViewParent);
-                Stage winAddProduct = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                winAddProduct.setTitle("Modify Customer");
-                winAddProduct.setScene(mainViewScene);
-                winAddProduct.show();
-            } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Customer not selected");
-                alert.setHeaderText("Error: Customer Not Selected");
-                alert.setContentText("Please Select a Customer");
-                alert.showAndWait();
-            }
+            controller.loadModifyCustomerView(event);
         });
         deleteCustomerButton.setOnAction((event) -> {
-            Customer selectedCustomer = controller.getSelectedCustomer();
-            if(!(selectedCustomer == null)){
-                State.deleteCustomer(selectedCustomer);
-            } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Customer not selected");
-                alert.setHeaderText("Error: Customer Not Selected");
-                alert.setContentText("Please Select a Customer");
-                alert.showAndWait();
-            }
+            controller.handleDeleteCustomer(event);
         });
 
     }
@@ -250,7 +204,7 @@ public class MainView {
         tvAppointments.getColumns().addAll(title, description, start, end, type);
         tvAppointments.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) ->{
             if (newSelection != null) {
-                //controller.setSelectedCustomer(newSelection);
+                controller.setSelectedAppointment(newSelection);
             }
         });
         setupTVCol();

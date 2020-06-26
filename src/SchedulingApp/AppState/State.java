@@ -2,40 +2,37 @@ package SchedulingApp.AppState;
 
 import SchedulingApp.DataBase.DataBaseManager;
 import SchedulingApp.Models.*;
-import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.Alert;
 
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.*;
-import java.util.Calendar;
-import java.util.ListIterator;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.function.Predicate;
-import java.util.logging.Filter;
 
 /**
  * This should be the only place that Database manager is accessed
  * state will hold all the current app info and changes and handle saving the data
  */
 public class State {
+    //State Variable to hold the selected language in the login screen.
     private static Locale selectedLanguage;
+
+    //State variable to hold the logged in user.
     private static User user;
 
-    private static boolean modifying;
-    private static int openCount = 0;
+    //State Variable to hold whether or not the notification has been show or not
+    private static boolean notificationsShown = false;
 
-    private static Calendar calendar = Calendar.getInstance();
+    //Date time variables to be used through out the app
     private static LocalDateTime time = LocalDateTime.now();
     private static ZoneId zId = ZoneId.systemDefault();
 
+    //Arrays holding app required data
     private static ObservableList<Appointment> appointments = FXCollections.observableArrayList();
     private static ObservableList<Appointment> upComingAppointments = FXCollections.observableArrayList();
     private static ObservableList<Customer> customers = FXCollections.observableArrayList();
@@ -43,12 +40,13 @@ public class State {
     private static ObservableList<City> cities = FXCollections.observableArrayList();
     private static ObservableList<Country> countries = FXCollections.observableArrayList();
 
-
-
+    //listeners used to monitor the change to the arrays
     private static ListChangeListener<Address> addressListChangeListener;
+    private static ListChangeListener<City> cityListChangeListener;
     private static ListChangeListener<Customer> customerListChangeListener;
     private static ListChangeListener<Appointment> appointmentListChangeListener;
 
+    //Getters and Setters
     public static void setUser(User user) {
         State.user = user;
     }
@@ -56,25 +54,12 @@ public class State {
         return user;
     }
 
-    public static void setzId(ZoneId zoneId){
-        State.zId = zoneId;
-    }
     public static ZoneId getzId(){
         return zId;
     }
 
     public static LocalDateTime getTime(){
         return time;
-    }
-    public static void setTime(LocalDateTime time){
-        State.time = time;
-    }
-
-    public static void setModifying(boolean modifying) {
-        State.modifying = modifying;
-    }
-    public static boolean isModifying() {
-        return modifying;
     }
 
     public static Locale getSelectedLanguage() {
@@ -84,24 +69,9 @@ public class State {
         State.selectedLanguage = selectedLanguage;
     }
 
-    // Getter for appointments
     public static ObservableList<Appointment> getAppointments() {
         return appointments;
     }
-    // Getter for customers
-
-    public static ObservableList<City> getCitiesByCountry(int countryId){
-      ListIterator<City> it = cities.listIterator();
-      ObservableList<City> citiesByCountry = FXCollections.observableArrayList();
-
-      while(it.hasNext()){
-          City city = it.next();
-          if(city.getCountryId() == countryId){
-              citiesByCountry.add(city);
-          }
-      }
-      return citiesByCountry;
-    };
 
     public static ObservableList<Country> getCountries() {
         return countries;
@@ -116,23 +86,44 @@ public class State {
         return customers;
     }
 
-
+    /**
+     * Add customer to state customer array
+     * @param customer customer to add to the observable array
+     */
     public static void addCustomer(Customer customer){
-        if(modifying){
-            DataBaseManager.updateCustomer(customer);
-        } else {
-            customers.add(customer);
-        }
+        customers.add(customer);
     }
+
+    /**
+     * Update customer in database
+     * @param customer customer to update in database
+     */
+    public static void updateCustomer(Customer customer){
+        DataBaseManager.updateCustomer(customer);
+    }
+
+    /**
+     * Delete customer in database
+     * @param customer customer to delete
+     */
     public static void deleteCustomer(Customer customer){
-        DataBaseManager.deleteCustomer(customer);
         customers.remove(customer);
     }
+
+    /**
+     * Add address to state address array
+     * @param address address to add to addresses array.
+     */
     public static void addAddress(Address address){
         addresses.add(address);
     }
-    public static void addAppointment(Appointment appt){appointments.add(appt);}
 
+    //CRUD for appointment observable array
+    public static void addAppointment(Appointment appt){appointments.add(appt);}
+    public static void updateAppointment(Appointment appt){DataBaseManager.updateAppointment(appt);}
+    public static void deleteAppointment(Appointment appt){appointments.remove(appt);}
+
+    //Clears the observable arrays
     public static void clearCustomers(){
         customers.clear();
     }
@@ -142,20 +133,22 @@ public class State {
     public static void clearCountries(){
         countries.clear();
     }
-
-
+    //Loads required data in to observable arrays
     public static void loadCustomers() {
         State.clearCustomers();
         ResultSet rs = DataBaseManager.getAllCustomerData();
         try {
             while (rs.next()) {
-                Customer customer = new Customer(rs.getInt("customerId"));
+                Customer customer = new Customer();
+                customer.setCustomerId(rs.getInt("customerId"));
                 customer.setActive(rs.getInt("active"));
                 customer.setCustomerName(rs.getString("customerName"));
                 customer.setAddressId(rs.getInt("addressId"));
                 customer.setAddress(rs.getString("address"));
                 customer.setAddress2(rs.getString("address2"));
+                customer.setCityId(rs.getInt("cityId"));
                 customer.setCity(rs.getString("city"));
+                customer.setCountryId(rs.getInt("countryId"));
                 customer.setCountry(rs.getString("country"));
                 customers.add(customer);
             }
@@ -279,11 +272,40 @@ public class State {
         }
     }
 
+    public static Address getAddressFromCustomer(Customer customer){
+        FilteredList<Address> filteredAddressData = new FilteredList<>(State.getAddresses(), address ->{
+            if(customer.getAddressId() == address.getAddressId()) {
+                return true;
+            }
+            return false;
+        });
+        return filteredAddressData.get(0);
+    }
+    public static City getCityFromCustomer(Customer customer){
+        FilteredList<City> filteredAddressData = new FilteredList<>(State.getCities(), city ->{
+            if (customer.getCityId() ==  city.getCityId()){
+                return true;
+            }
+            return false;
+        });
+        return filteredAddressData.get(0);
+    }
+    public static Country getCountryFromCustomer(Customer customer){
+        FilteredList<Country> filteredAddressData = new FilteredList<>(State.getCountries(), country ->{
+            if (customer.getCountryId() ==  country.getCountryId()){
+                return true;
+            }
+            return false;
+        });
+        return filteredAddressData.get(0);
+    }
 
-
+    /**
+     * Generates required notifications
+     */
     public static void logInAppointmentNotification() {
         // Checks to see if the main screen has already been opened during this session
-        if (openCount == 0) {
+        if (!notificationsShown) {
             for (Appointment appointment : upComingAppointments) {
                 ResourceBundle rb = ResourceBundle.getBundle("SchedulingApp/MainScreen", State.getSelectedLanguage());
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -298,51 +320,73 @@ public class State {
                 alert.showAndWait();
             }
         }
-        // Increment openCount so notifications won't be shown again this session
-        openCount++;
+        notificationsShown = true;
     }
 
+    /**
+     * setups listeners and adds them to the arrays.
+     */
     public static void addListListeners(){
-        addressListChangeListener = new ListChangeListener<Address>() {
-            @Override
-            public void onChanged(Change<? extends Address> change) {
-                while(change.next()) {
-                    for (Address addedAddress : change.getAddedSubList()) {
-                        System.out.println("Saving address: " + addedAddress.getAddress());
-                        DataBaseManager.saveAddress(addedAddress);
-                    }
+        addressListChangeListener = change -> {
+            while(change.next()) {
+                for (Address addedAddress : change.getAddedSubList()) {
+                    System.out.println("Saving address: " + addedAddress.getAddress());
+                    int dbId = DataBaseManager.saveAddress(addedAddress);
+                    addedAddress.setAddressId(dbId);
+                }
+                for(Address removedAddress : change.getRemoved()) {
+                    System.out.println("Removing Address: " + removedAddress.getAddress());
                 }
             }
         };
-        customerListChangeListener = new ListChangeListener<Customer>() {
-            @Override
-            public void onChanged(Change<? extends Customer> change) {
-                while (change.next()) {
-                    for (Customer addedCustomer : change.getAddedSubList()) {
-                        System.out.println("Saving customer: " + addedCustomer.getCustomerName());
-                        DataBaseManager.saveCustomer(addedCustomer);
-                    }
+        cityListChangeListener = change -> {
+            while(change.next()) {
+                for (City addedCity : change.getAddedSubList()) {
+                    System.out.println("Saving address: " + addedCity.getCity());
+                    int dbId = DataBaseManager.saveCity(addedCity);
+                    addedCity.setCityId(dbId);
+                }
+                for(City removedCity : change.getRemoved()) {
+                    System.out.println("Removing Address: " + removedCity.getCity());
                 }
             }
         };
-        appointmentListChangeListener = new ListChangeListener<Appointment>(){
-            @Override
-            public void onChanged(Change<? extends Appointment> change) {
-                while (change.next()) {
-                    for (Appointment addedAppointment : change.getAddedSubList()) {
-                        System.out.println("Saving appointment: " + addedAppointment.getTitle());
-                        DataBaseManager.saveAppointment(addedAppointment);
-                    }
+        customerListChangeListener = change -> {
+            while (change.next()) {
+                if(change.wasUpdated()){
+                    System.out.println("Update detected");
+                }
+                for (Customer addedCustomer : change.getAddedSubList()) {
+                    System.out.println("Saving customer: " + addedCustomer.getCustomerName());
+                    int dbId = DataBaseManager.saveCustomer(addedCustomer);
+                    addedCustomer.setCustomerId(dbId);
+                }
+                for(Customer removedCustomer : change.getRemoved()) {
+                    System.out.println("Removing customer: " + removedCustomer.getCustomerName());
+                    DataBaseManager.deleteCustomer(removedCustomer);
+                }
+            }
+        };
+        appointmentListChangeListener = change -> {
+            while (change.next()) {
+                for (Appointment addedAppointment : change.getAddedSubList()) {
+                    System.out.println("Saving appointment: " + addedAppointment.getTitle());
+                    int dbId = DataBaseManager.saveAppointment(addedAppointment);
+                    addedAppointment.setAppointmentId(dbId);
+                }
+                for(Appointment removedAppointment : change.getRemoved()) {
+                    System.out.println("Removing appointment: " + removedAppointment.getTitle());
+                    DataBaseManager.deleteAppointment(removedAppointment);
                 }
             }
         };
         State.getCustomers().addListener(customerListChangeListener);
         State.getAddresses().addListener(addressListChangeListener);
+        State.getCities().addListener(cityListChangeListener);
         State.getAppointments().addListener(appointmentListChangeListener);
     }
 
-    public void removeListeners(){
-        State.getAddresses().removeListener(addressListChangeListener);
-        State.getCustomers().removeListener(customerListChangeListener);
+    public static void addCity(City city) {
+        cities.add(city);
     }
 }

@@ -39,7 +39,7 @@ public class DataBaseManager {
         try{
             PreparedStatement pst = DBConnection.getConnection().prepareStatement("SELECT * " +
                     "FROM user " +
-                    "WHERE userName=? AND password=?");
+                    "WHERE userName=? AND password=?;");
             pst.setString(1, user.getUserName());
             pst.setString(2, user.getPassword());
             ResultSet rs = pst.executeQuery();
@@ -54,6 +54,17 @@ public class DataBaseManager {
             e.printStackTrace();
         }
         return user;
+    }
+    public static ResultSet getAllUsers(){
+        ResultSet rs = null;
+        try{
+            PreparedStatement pst = DBConnection.getConnection().prepareStatement("SELECT * " +
+                    "FROM user;");
+            rs = pst.executeQuery();
+        } catch(SQLException e){
+            e.printStackTrace();
+        }
+        return rs;
     }
 
     public static ResultSet getAllAddresses(){
@@ -127,14 +138,31 @@ public class DataBaseManager {
         return id;
     }
 
-    public static ResultSet getAllCustomerData(){
+    public static ResultSet getAllActiveCustomerData(){
         ResultSet rs = null;
         try {
             PreparedStatement pst = DBConnection.getConnection().prepareStatement("SELECT * " +
                     "FROM customer " +
                     "JOIN address ON customer.addressId=address.addressId " +
                     "JOIN city ON address.cityId=city.cityId " +
-                    "JOIN country ON city.countryId=country.countryId");
+                    "JOIN country ON city.countryId=country.countryId " +
+                    "WHERE active=1;"
+            );
+            rs = pst.executeQuery();
+        } catch (SQLException ex){
+            System.out.println(ex.getMessage());
+        }
+        return rs;
+    }
+    public static ResultSet getAllInActiveCustomerData(){
+        ResultSet rs = null;
+        try {
+            PreparedStatement pst = DBConnection.getConnection().prepareStatement("SELECT * " +
+                    "FROM customer " +
+                    "JOIN address ON customer.addressId=address.addressId " +
+                    "JOIN city ON address.cityId=city.cityId " +
+                    "JOIN country ON city.countryId=country.countryId " +
+                    "WHERE active=0;");
             rs = pst.executeQuery();
         } catch (SQLException ex){
             System.out.println(ex.getMessage());
@@ -142,13 +170,24 @@ public class DataBaseManager {
         return rs;
     }
 
-    public static ResultSet getAllAppointments(User user){
+    public static ResultSet getAllAppointmentsByUser(User user){
         ResultSet rs = null;
         try{
             PreparedStatement pst = DBConnection.getConnection().prepareStatement("SELECT * " +
                     "FROM appointment " +
                     "WHERE userId=?;");
             pst.setInt(1, user.getUserID());
+            rs = pst.executeQuery();
+        } catch (SQLException ex){
+            System.out.println(ex.getMessage());
+        }
+        return rs;
+    }
+    public static ResultSet getAllAppointments(){
+        ResultSet rs = null;
+        try{
+            PreparedStatement pst = DBConnection.getConnection().prepareStatement("SELECT * " +
+                    "FROM appointment;");
             rs = pst.executeQuery();
         } catch (SQLException ex){
             System.out.println(ex.getMessage());
@@ -183,16 +222,16 @@ public class DataBaseManager {
         try {
             LocalDateTime startLDT = start.atZone(State.getzId()).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
             LocalDateTime endLDT = end.atZone(State.getzId()).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
-            PreparedStatement stmt = DBConnection.getConnection().prepareStatement(getOverlappingApptsSQL);
-            stmt.setTimestamp(1, Timestamp.valueOf(startLDT));
-            stmt.setTimestamp(2, Timestamp.valueOf(endLDT));
-            stmt.setTimestamp(3, Timestamp.valueOf(startLDT));
-            stmt.setTimestamp(4, Timestamp.valueOf(endLDT));
-            stmt.setTimestamp(5, Timestamp.valueOf(startLDT));
-            stmt.setTimestamp(6, Timestamp.valueOf(endLDT));
-            stmt.setTimestamp(7, Timestamp.valueOf(startLDT));
-            stmt.setTimestamp(8, Timestamp.valueOf(endLDT));
-            ResultSet rs = stmt.executeQuery();
+            PreparedStatement pst = DBConnection.getConnection().prepareStatement(getOverlappingApptsSQL);
+            pst.setTimestamp(1, Timestamp.valueOf(startLDT));
+            pst.setTimestamp(2, Timestamp.valueOf(endLDT));
+            pst.setTimestamp(3, Timestamp.valueOf(startLDT));
+            pst.setTimestamp(4, Timestamp.valueOf(endLDT));
+            pst.setTimestamp(5, Timestamp.valueOf(startLDT));
+            pst.setTimestamp(6, Timestamp.valueOf(endLDT));
+            pst.setTimestamp(7, Timestamp.valueOf(startLDT));
+            pst.setTimestamp(8, Timestamp.valueOf(endLDT));
+            ResultSet rs = pst.executeQuery();
 
             while (rs.next()) {
                 Appointment overlappedAppt = new Appointment();
@@ -332,7 +371,8 @@ public class DataBaseManager {
     }
     public static void deleteCustomer(Customer customer){
         try{
-            PreparedStatement pst = DBConnection.getConnection().prepareStatement(DELETE + FROM + CUSTOMER +
+            PreparedStatement pst = DBConnection.getConnection().prepareStatement("UPDATE customer " +
+                    "SET active=0"+
                     " WHERE " +
                         "customerId=?;");
             pst.setInt(1, customer.getCustomerId());
@@ -363,17 +403,17 @@ public class DataBaseManager {
 
             ZonedDateTime startZDT = appt.getStart().withZoneSameInstant(ZoneId.of("UTC"));
             ZonedDateTime endZDT = appt.getEnd().withZoneSameInstant(ZoneId.of("UTC"));
-            pst.setTimestamp(10, Timestamp.valueOf(startZDT.toLocalDateTime()));
-            pst.setTimestamp(11, Timestamp.valueOf(endZDT.toLocalDateTime()));
+            pst.setTimestamp(9, Timestamp.valueOf(startZDT.toLocalDateTime()));
+            pst.setTimestamp(10, Timestamp.valueOf(endZDT.toLocalDateTime()));
 
             pst.setString(12, State.getUser().getUserName());
-            pst.setString(13, State.getUser().getUserName());
+            pst.setString(14, State.getUser().getUserName());
             pst.executeUpdate();
 
             nextId = getId(pst);
         }
-        catch (SQLException e){
-            e.printStackTrace();
+        catch (SQLException ex){
+            ex.getMessage();
         }
         return nextId;
     }

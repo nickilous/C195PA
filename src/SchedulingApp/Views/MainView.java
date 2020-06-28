@@ -25,6 +25,7 @@ public class MainView {
 
     VBox addAppointmentButtonsHBox = new VBox();
     VBox addCustomerButtonsHBox = new VBox();
+    VBox utilityButtonsHBox = new VBox();
 
 
     TabPane tpCalendar = new TabPane();
@@ -64,6 +65,9 @@ public class MainView {
     Button updateAppointmentButton = new Button();
     Button deleteAppointmentButton = new Button();
 
+    TitledPane utilitiesTitlePane = new TitledPane();
+    Button btPrintReport = new Button();
+
     BooleanProperty isWeek = new SimpleBooleanProperty();
 
     public MainView(MainViewController controller){
@@ -71,8 +75,6 @@ public class MainView {
 
         this.controller = controller;
         this.controller.isWeekProperty().bind(isWeek);
-
-        State.addListListeners();
 
         mainAnchorPane.getChildren().add(mainBorderPane);
         //mainAnchorPane.setPrefHeight(800);
@@ -99,10 +101,12 @@ public class MainView {
     private void setupTitlePanes(){
         addCustomerTitlePane.setText("Customer Controls");
         addAppointmentTitlePane.setText("Appointment Controls");
+        utilitiesTitlePane.setText("Utility Controls");
 
         int leftVBoxSize = leftVBox.getChildren().size();
         addCustomerTitlePane.prefWidthProperty().bind(leftVBox.widthProperty().divide(leftVBoxSize));
         addAppointmentTitlePane.prefWidthProperty().bind(leftVBox.widthProperty().divide(leftVBoxSize));
+        utilitiesTitlePane.prefWidthProperty().bind(leftVBox.widthProperty().divide(leftVBoxSize));
 
         addCustomerButtonsHBox.getChildren().add(addCustomerButton);
         addCustomerButtonsHBox.getChildren().add(updateCustomerButton);
@@ -114,10 +118,14 @@ public class MainView {
 
         addCustomerTitlePane.setContent(addCustomerButtonsHBox);
         addAppointmentTitlePane.setContent(addAppointmentButtonsHBox);
+
+        utilityButtonsHBox.getChildren().add(btPrintReport);
+        utilitiesTitlePane.setContent(utilityButtonsHBox);
     }
     private void setupLeftBorderPane(){
         leftVBox.getChildren().add(addCustomerTitlePane);
         leftVBox.getChildren().add(addAppointmentTitlePane);
+        leftVBox.getChildren().add(utilitiesTitlePane);
         leftVBox.prefWidth(184);
     }
     private void setupRightBoarderPane(){
@@ -126,6 +134,7 @@ public class MainView {
             if (tWeek.isSelected()) {
                 isWeek.set(true);
                 tWeek.setContent(tvAppointments);
+                controller.triggerFilterChange();
             } else {
                 tWeek.setContent(null);
             }
@@ -134,6 +143,7 @@ public class MainView {
             if(tMonth.isSelected()){
                 isWeek.set(false);
                 tMonth.setContent(tvAppointments);
+                controller.triggerFilterChange();
             } else {
                 tMonth.setContent(null);
             }
@@ -160,6 +170,9 @@ public class MainView {
         addCustomerButton.setMaxWidth(Double.MAX_VALUE);
         updateCustomerButton.setMaxWidth(Double.MAX_VALUE);
         deleteCustomerButton.setMaxWidth(Double.MAX_VALUE);
+
+        btPrintReport.setText("Print Reports");
+        btPrintReport.setMaxWidth(Double.MAX_VALUE);
 
         btForward.setText(">");
         btBackward.setText("<");
@@ -189,6 +202,10 @@ public class MainView {
         });
         deleteCustomerButton.setOnAction((event) -> {
             controller.handleDeleteCustomer(event);
+        });
+
+        btPrintReport.setOnAction((event) ->{
+            controller.loadReportView(event);
         });
 
     }

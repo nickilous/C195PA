@@ -133,17 +133,15 @@ public class Address {
         this.country.set(country);
     }
 
-    public static void isAddressValid(String address,
-                                      String postalCode,
-                                      String phone) throws AddressFieldsEmptyException {
+    public static void isAddressValid(Address address) throws AddressFieldsEmptyException {
         String errorMessage = "";
-        if (address.length() == 0) {
+        if (address.getAddress().length() == 0) {
             errorMessage = errorMessage + "Address Field Empty";
         } else
-        if (postalCode.length() == 0) {
+        if (address.getPostalCode().length() == 0) {
             errorMessage = errorMessage + "Postal Code Field Empty";
         } else
-        if (phone.length() == 0) {
+        if (address.getPhone().length() == 0) {
             errorMessage = errorMessage + "Phone Field Empty";
         }
         if (!errorMessage.isEmpty()){

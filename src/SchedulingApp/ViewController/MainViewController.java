@@ -5,6 +5,7 @@ import SchedulingApp.Models.Appointment;
 import SchedulingApp.Models.Customer;
 import SchedulingApp.Views.ApptView;
 import SchedulingApp.Views.CustomerView;
+import SchedulingApp.Views.ReportView;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -31,21 +32,22 @@ public class MainViewController {
     private Appointment appointment;
     private LocalDateTime startOfWeek;
     private LocalDateTime startOfMonth;
-    private StringProperty calendarLabel = new SimpleStringProperty();
-    private BooleanProperty isWeek = new SimpleBooleanProperty();
-    private ObservableList<Appointment> currentAppointments = FXCollections.observableArrayList();
+    private final StringProperty calendarLabel = new SimpleStringProperty();
+    private final BooleanProperty isWeek = new SimpleBooleanProperty();
+    private final ObservableList<Appointment> currentAppointments = FXCollections.observableArrayList();
 
 
-    public MainViewController(){
+    public MainViewController() {
         this.calendarLabel.setValue("");
         setTimeToStartOfWeek();
         setTimeToStartOfMonth();
         setupIsWeekListener();
         filterAppointmentsTimeCustomer();
     }
-    private void setTimeToStartOfWeek() {
+
+    public void setTimeToStartOfWeek() {
         DayOfWeek dayOfWeek = State.getTime().getDayOfWeek();
-        switch (dayOfWeek){
+        switch (dayOfWeek) {
             case MONDAY -> {
                 startOfWeek = State.getTime();
                 break;
@@ -76,23 +78,21 @@ public class MainViewController {
             }
         }
     }
-    private void setTimeToStartOfMonth(){
+
+    public void setTimeToStartOfMonth() {
         int dayOfMonth = State.getTime().getDayOfMonth() - 1;
         startOfMonth = State.getTime().minusDays(dayOfMonth);
     }
-    private void setupIsWeekListener(){
-        this.isWeek.addListener((obs, oldValue, newValue) ->{
+
+    private void setupIsWeekListener() {
+        this.isWeek.addListener((obs, oldValue, newValue) -> {
             changeLabel();
-            if(newValue){
-                setTimeToStartOfWeek();
-            } else {
-                setTimeToStartOfMonth();
-            }
         });
     }
-    private void changeLabel(){
-        if(isWeek.get()){
-            // Set the title based on current week
+
+    private void changeLabel() {
+        if (isWeek.get()) {
+            // Set the label based on current week
             LocalDateTime startDate = startOfWeek;
             LocalDateTime endDate = startOfWeek.plusDays(6);
             String localizedStartDateMonth = new DateFormatSymbols().getMonths()[startDate.getMonthValue() - 1];
@@ -103,34 +103,34 @@ public class MainViewController {
             String endDateTitle = endDateMonthProper + " " + endDate.getDayOfMonth();
             calendarLabel.setValue("  " + startDateTitle + " - " + endDateTitle + ", " + endDate.getYear() + "  ");
         } else {
-            // Set the title based on current month
+            // Set the label based on current month
             String localizedMonth = new DateFormatSymbols().getMonths()[startOfMonth.getMonthValue() - 1];
             String properMonth = localizedMonth.substring(0, 1).toUpperCase() + localizedMonth.substring(1);
             calendarLabel.setValue("  " + properMonth + " " + startOfMonth.getYear() + "  ");
         }
+    }
+
+    public void triggerFilterChange() {
         filterAppointmentsTimeCustomer();
     }
 
-    public void triggerFilterChange(){
-        filterAppointmentsTimeCustomer();
-    }
-    private void filterAppointmentsTimeCustomer(){
+    private void filterAppointmentsTimeCustomer() {
         currentAppointments.clear();
         FilteredList<Appointment> items = new FilteredList<>(State.getAppointments());
 
         ZonedDateTime start;
         ZonedDateTime end;
-        if(isWeek.get()){
-            start = ZonedDateTime.ofInstant(startOfWeek, ZoneOffset.UTC,State.getzId());
+        if (isWeek.get()) {
+            start = ZonedDateTime.ofInstant(startOfWeek, ZoneOffset.UTC, State.getzId());
             end = start.plusDays(6);
         } else {
-            start = ZonedDateTime.ofInstant(startOfMonth,ZoneOffset.UTC,State.getzId());
+            start = ZonedDateTime.ofInstant(startOfMonth, ZoneOffset.UTC, State.getzId());
             end = start.plusMonths(1);
         }
 
         Predicate<Appointment> startsAfter = i -> i.getStart().isAfter(start);
         Predicate<Appointment> startsBefore = i -> i.getStart().isBefore(end);
-        if(customer != null) {
+        if (customer != null) {
             Predicate<Appointment> customer = i -> i.getCustomerId() == this.customer.getCustomerId();
             Predicate<Appointment> time = startsAfter.and(startsBefore);
             Predicate<Appointment> filter = time.and(customer);
@@ -150,36 +150,39 @@ public class MainViewController {
         return isWeek;
     }
 
-    public void setSelectedCustomer(Customer customer){
+    public Customer getSelectedCustomer() {
+        return customer;
+    }
+
+    public void setSelectedCustomer(Customer customer) {
         this.customer = customer;
         filterAppointmentsTimeCustomer();
     }
-    public Customer getSelectedCustomer(){
-        return customer;
+
+    public Appointment getSelectedAppointment() {
+        return appointment;
     }
 
     public void setSelectedAppointment(Appointment appointment) {
         this.appointment = appointment;
-    }
-    public Appointment getSelectedAppointment() {
-        return appointment;
     }
 
     public StringProperty calendarLabelProperty() {
         return calendarLabel;
     }
 
-    public void handleForward(){
-        if(isWeek.get()){
-            startOfWeek = startOfWeek.plusDays(6);
+    public void handleForward() {
+        if (isWeek.get()) {
+            startOfWeek = startOfWeek.plusDays(7);
         } else {
             startOfMonth = startOfMonth.plusMonths(1);
         }
         filterAppointmentsTimeCustomer();
         changeLabel();
     }
-    public void handleBackward(){
-        if(isWeek.get()){
+
+    public void handleBackward() {
+        if (isWeek.get()) {
             startOfWeek = startOfWeek.minusDays(6);
         } else {
             startOfMonth = startOfMonth.minusMonths(1);
@@ -188,18 +191,19 @@ public class MainViewController {
         changeLabel();
     }
 
-    public void loadAddCustomerView(Event event){
+    public void loadAddCustomerView(Event event) {
         CustomerViewController custViewController = new CustomerViewController();
         CustomerView addView = new CustomerView(custViewController);
         Parent addCustomerViewParent = addView.getView();
         Scene mainViewScene = new Scene(addCustomerViewParent);
-        Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
+        Stage winAddProduct = (Stage) ((Node) event.getSource()).getScene().getWindow();
         winAddProduct.setTitle("Add Customer");
         winAddProduct.setScene(mainViewScene);
         winAddProduct.show();
     }
-    public void loadModifyCustomerView(Event event){
-        if(!(customer == null)) {
+
+    public void loadModifyCustomerView(Event event) {
+        if (!(customer == null)) {
             CustomerViewController custViewController = new CustomerViewController(customer);
             CustomerView addView = new CustomerView(custViewController);
             Parent addCustomerViewParent = addView.getView();
@@ -217,34 +221,59 @@ public class MainViewController {
         }
     }
 
-    public void loadAddAppointmentView(Event event){
+    public void loadAddAppointmentView(Event event) {
+
         ApptViewController apptViewController = new ApptViewController(customer,
                 false);
 
         ApptView apptView = new ApptView(apptViewController);
         Parent addAppointmentViewParent = apptView.getView();
         Scene mainViewScene = new Scene(addAppointmentViewParent);
-        Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
+        Stage winAddProduct = (Stage) ((Node) event.getSource()).getScene().getWindow();
         winAddProduct.setTitle("Add Appointment");
         winAddProduct.setScene(mainViewScene);
+        winAddProduct.centerOnScreen();
         winAddProduct.show();
-    }
-    public void loadModifyAppointmentView(Event event){
-        ApptViewController apptViewController = new ApptViewController(customer,
-                appointment,
-                true);
 
-        ApptView apptView = new ApptView(apptViewController);
-        Parent addAppointmentViewParent = apptView.getView();
+    }
+
+    public void loadModifyAppointmentView(Event event) {
+        if (!(appointment == null)) {
+            ApptViewController apptViewController = new ApptViewController(customer,
+                    appointment,
+                    true);
+
+            ApptView apptView = new ApptView(apptViewController);
+            Parent addAppointmentViewParent = apptView.getView();
+            Scene mainViewScene = new Scene(addAppointmentViewParent);
+            Stage winAddProduct = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            winAddProduct.setTitle("Modify Appointment");
+            winAddProduct.setScene(mainViewScene);
+            winAddProduct.centerOnScreen();
+            winAddProduct.show();
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Appointment not selected");
+            alert.setHeaderText("Error: Appointment Not Selected");
+            alert.setContentText("Please Select a Appointment");
+            alert.showAndWait();
+        }
+    }
+
+    public void loadReportView(Event event) {
+        ReportController reportController = new ReportController();
+        ReportView reportView = new ReportView(reportController);
+        Parent addAppointmentViewParent = reportView.getView();
         Scene mainViewScene = new Scene(addAppointmentViewParent);
-        Stage winAddProduct = (Stage)((Node)event.getSource()).getScene().getWindow();
-        winAddProduct.setTitle("Modify Appointment");
+        Stage winAddProduct = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        winAddProduct.setTitle("Reports");
         winAddProduct.setScene(mainViewScene);
+        winAddProduct.centerOnScreen();
         winAddProduct.show();
     }
 
-    public void handleDeleteCustomer(Event event){
-        if(!(customer == null)){
+    public void handleDeleteCustomer(Event event) {
+        if (!(customer == null)) {
             State.deleteCustomer(customer);
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -254,11 +283,17 @@ public class MainViewController {
             alert.showAndWait();
         }
     }
-    public void handleDeleteAppointment(Event event){
-        if(!(appointment == null)) {
+
+    public void handleDeleteAppointment(Event event) {
+        if (!(appointment == null)) {
             State.deleteAppointment(appointment);
             triggerFilterChange();
+        }else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Appointment not selected");
+            alert.setHeaderText("Error: Appointment Not Selected");
+            alert.setContentText("Please Select a Appointment");
+            alert.showAndWait();
         }
     }
-
 }

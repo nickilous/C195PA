@@ -15,16 +15,10 @@ import java.sql.SQLException;
 public class Main extends Application {
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
-
-
-
+    public void start(Stage primaryStage){
         LoginViewController loginViewController = new LoginViewController();
         LoginView loginView = new LoginView(loginViewController);
         Scene scene = new Scene(loginView.getView());
-
-        /*MainView mainView = new MainView();
-        Scene scene = new Scene(mainView.getView());*/
 
         primaryStage.setScene(scene);
         primaryStage.show();

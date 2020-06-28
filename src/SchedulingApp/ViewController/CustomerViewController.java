@@ -3,7 +3,10 @@ package SchedulingApp.ViewController;
 import SchedulingApp.AppState.State;
 import SchedulingApp.Exceptions.AddressFieldsEmptyException;
 import SchedulingApp.Exceptions.InvalidCustomerException;
-import SchedulingApp.Models.*;
+import SchedulingApp.Models.Address;
+import SchedulingApp.Models.City;
+import SchedulingApp.Models.Country;
+import SchedulingApp.Models.Customer;
 import SchedulingApp.Views.MainView;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,14 +25,20 @@ import java.util.Optional;
 public class CustomerViewController {
     Customer customer = new Customer();
     Address address = new Address();
-    City city = new City();
-    Country country = new Country();
+    City city;
+    Country country;
 
     boolean isModifying = false;
+    FilteredList<City> filteredCityData = new FilteredList<>(State.getCities());
+    ObservableList<City> filteredCities = FXCollections.observableArrayList();
 
-    public CustomerViewController(){
+    private Address selectedAddress;
+    private City selectedCity;
+    private Country selectedCountry;
+
+    public CustomerViewController() {
     }
-    public CustomerViewController(Customer customer){
+    public CustomerViewController(Customer customer) {
         isModifying = true;
         this.customer = customer;
         this.address = State.getAddressFromCustomer(customer);
@@ -39,16 +48,11 @@ public class CustomerViewController {
         this.selectedCity = city;
         this.selectedCountry = country;
     }
-    private City selectedCity;
-    private Country selectedCountry;
 
-    FilteredList<City> filteredCityData = new FilteredList<>(State.getCities(), c -> true);
-    ObservableList<City> filteredCities = FXCollections.observableArrayList();
-
-
-    public Customer getCustomer(){
+    public Customer getCustomer() {
         return customer;
     }
+
     public void setCustomer(Customer customer) {
         this.customer = customer;
     }
@@ -57,33 +61,16 @@ public class CustomerViewController {
         return address;
     }
 
-    public void setAddress(Address address) {
-        this.address = address;
-    }
-
-    public City getCity() {
-        return city;
-    }
-
-    public void setCity(City city) {
-        this.city = city;
-    }
-
-    public Country getCountry() {
-        return country;
-    }
-
-    public void setCountry(Country country) {
-        this.country = country;
-    }
-
     public boolean isModifying() {
         return isModifying;
     }
 
+    public Address getSelectedAddress() {
+        return selectedAddress;
+    }
 
-    public void setSelectedAddress(Address address){
-        this.address = address;
+    public void setSelectedAddress(Address address) {
+        this.selectedAddress = address;
         customer.setAddressId(address.getAddressId());
         customer.setAddress(address.getAddress());
         customer.setAddress2(address.getAddress2());
@@ -94,34 +81,35 @@ public class CustomerViewController {
         customer.setCountryId(address.getCountryId());
         customer.setCountry(address.getCountry());
     }
-    public Address getSelectedAddress(){return address;}
+
     public City getSelectedCity() {
         return selectedCity;
     }
+
     public Country getSelectedCountry() {
         return selectedCountry;
     }
-    public ObservableList getFilteredCities(){return filteredCities;}
+
+    public ObservableList getFilteredCities() {
+        return filteredCities;
+    }
 
     /**
      * Sets the selected city from the combo box
+     *
      * @param selectedCity from combo box
      */
-    public void cityComboBoxListener(City selectedCity){
+    public void cityComboBoxListener(City selectedCity) {
         this.selectedCity = selectedCity;
     }
 
     /**
      * Sets the selected country from the combo box
+     *
      * @param selectedCountry from combo box
      */
-    public void countryComboBoxListener(Country selectedCountry){
-        filteredCityData.setPredicate(city ->{
-            if (city.getCountryId() ==  selectedCountry.getCountryId()){
-                return true;
-            }
-            return false;
-        });
+    public void countryComboBoxListener(Country selectedCountry) {
+        filteredCityData.setPredicate(city -> city.getCountryId() == selectedCountry.getCountryId());
         this.selectedCountry = selectedCountry;
         filteredCities.clear();
         filteredCities.addAll(filteredCityData);
@@ -131,19 +119,19 @@ public class CustomerViewController {
      * Saves Finished customer to the state and which saves it
      * to the database through the state add listener
      */
-    public void handleSaveCustomer(Event event){
+    public void handleSaveCustomer(Event event) {
         try {
             Customer.isValidInput(customer);
-
-            customer.setAddress(address.getAddress());
-            customer.setAddress2(address.getAddress2());
-            customer.setPostalCode(address.getPostalCode());
-            customer.setPhone(address.getPhone());
-            customer.setAddressId(address.getAddressId());
-            customer.setCityId(address.getCityId());
-            customer.setCity(address.getCity());
-            customer.setCountryId(address.getCountryId());
-            customer.setCountry(address.getCountry());
+            customer.setActive(1);
+            customer.setAddress(selectedAddress.getAddress());
+            customer.setAddress2(selectedAddress.getAddress2());
+            customer.setPostalCode(selectedAddress.getPostalCode());
+            customer.setPhone(selectedAddress.getPhone());
+            customer.setAddressId(selectedAddress.getAddressId());
+            customer.setCityId(selectedAddress.getCityId());
+            customer.setCity(selectedAddress.getCity());
+            customer.setCountryId(selectedAddress.getCountryId());
+            customer.setCountry(selectedAddress.getCountry());
 
 
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -154,7 +142,7 @@ public class CustomerViewController {
 
             Optional<ButtonType> result = alert.showAndWait();
             if (result.get() == ButtonType.OK) {
-                if(!isModifying) {
+                if (!isModifying) {
                     State.addCustomer(customer);
                 } else {
                     State.updateCustomer(customer);
@@ -168,14 +156,14 @@ public class CustomerViewController {
                 winAddProduct.setScene(mainViewScene);
                 winAddProduct.show();
             }
-        } catch (InvalidCustomerException ex){
+        } catch (InvalidCustomerException ex) {
             System.out.println(ex.getMessage());
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error Adding Customer");
             alert.setHeaderText("There is an empty field.");
             alert.setContentText(ex.getMessage());
             alert.showAndWait();
-        } catch (NullPointerException ex){
+        } catch (NullPointerException ex) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error Adding Customer");
             alert.setHeaderText("No address for customer.");
@@ -188,9 +176,9 @@ public class CustomerViewController {
      * Saves address to the state which then saves it to the database through the
      * add item listener
      */
-    public void handleAddAddress(Event event) {
+    public void handleAddAddress(Address address) {
         try {
-            Address.isAddressValid(address.getAddress(), address.getPostalCode(), address.getPhone());
+            Address.isAddressValid(address);
             address.setCityId(selectedCity.getCityId());
             address.setCity(selectedCity.getCity());
             address.setCountryId(selectedCountry.getCountryId());
@@ -203,6 +191,7 @@ public class CustomerViewController {
             alert.setTitle("Error Adding Address");
             alert.setHeaderText("There is an empty field.");
             alert.setContentText(ex.getMessage());
+            alert.showAndWait();
         } catch (NullPointerException ex) {
             System.out.println(ex.getMessage());
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -217,13 +206,14 @@ public class CustomerViewController {
         @Override
         protected void updateItem(City city, boolean empty) {
             super.updateItem(city, empty);
-            if(empty){
+            if (empty) {
                 setText(null);
             } else {
                 setText(city.getCity());
             }
         }
     }
+
     public static class CountryCell extends ListCell<Country> {
         @Override
         public void updateItem(Country country, boolean empty) {

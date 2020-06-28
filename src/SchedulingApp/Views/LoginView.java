@@ -172,6 +172,8 @@ public class LoginView {
                 RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME, newValue));
                 controller.comboBoxListener(newValue);
             }
+            Stage winAddProduct = (Stage) (cbLocale.getScene().getWindow());
+            winAddProduct.sizeToScene();
         });
     }
     public static class LocaleCell extends ListCell<Locale> {

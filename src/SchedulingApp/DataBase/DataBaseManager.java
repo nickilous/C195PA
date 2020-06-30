@@ -388,12 +388,12 @@ public class DataBaseManager {
                 "INSERT INTO appointment (customerId, userId, title, "
                         + "description, location, contact, type, url, start, end, "
                         + "createDate, createdBy, lastUpdate, lastUpdateBy) ",
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, NOW(), ?)");
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, NOW(), ?)");
 
         try {
             PreparedStatement pst = DBConnection.getConnection().prepareStatement(addAppointmentSQL);
             pst.setObject(1, appt.getCustomerId());
-            pst.setObject(2, appt.getUserId());
+            pst.setObject(2, State.getUser().getUserID());
             pst.setObject(3, appt.getTitle());
             pst.setObject(4, appt.getDescription());
             pst.setObject(5, appt.getLocation());
@@ -406,14 +406,14 @@ public class DataBaseManager {
             pst.setTimestamp(9, Timestamp.valueOf(startZDT.toLocalDateTime()));
             pst.setTimestamp(10, Timestamp.valueOf(endZDT.toLocalDateTime()));
 
+            pst.setString(11, State.getUser().getUserName());
             pst.setString(12, State.getUser().getUserName());
-            pst.setString(14, State.getUser().getUserName());
             pst.executeUpdate();
 
             nextId = getId(pst);
         }
         catch (SQLException ex){
-            ex.getMessage();
+            System.out.println(ex.getMessage());
         }
         return nextId;
     }
@@ -444,8 +444,8 @@ public class DataBaseManager {
             pst.setObject(12, appointment.getAppointmentId());
             pst.executeUpdate();
         }
-        catch (SQLException e) {
-            e.printStackTrace();
+        catch (SQLException ex) {
+            System.out.println(ex.getMessage());
         }
     }
     public static void deleteAppointment(Appointment appointment) {

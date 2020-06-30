@@ -17,13 +17,17 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.stage.Stage;
 import javafx.util.converter.LocalTimeStringConverter;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 public class ApptViewController {
-    private final ZoneId zId = State.getzId();
-    Customer customer;
     Appointment appointment;
+    LocalDate startDate;
+    LocalDate endDate;
+    LocalTime startTime;
+    LocalTime endTime;
+
     boolean isModifying;
     SpinnerValueFactory svfStart = new SpinnerValueFactory<LocalTime>() {
         {
@@ -64,22 +68,19 @@ public class ApptViewController {
         }
     };
 
-    public ApptViewController(Customer customer, boolean isModifying) {
-        this.customer = customer;
-        this.isModifying = isModifying;
+    public ApptViewController(Customer customer) {
+        this.appointment = new Appointment();
+        appointment.setCustomerId(customer.getCustomerId());
+        this.isModifying = false;
         setDateTime();
     }
 
-    public ApptViewController(Customer customer, Appointment appointment, boolean isModifying) {
-        this.customer = customer;
+    public ApptViewController(Appointment appointment) {
         this.appointment = appointment;
-        this.isModifying = isModifying;
+        this.isModifying = true;
         setDateTime();
     }
 
-    public Customer getCustomer() {
-        return customer;
-    }
 
     public Appointment getAppointment() {
         return appointment;
@@ -89,13 +90,16 @@ public class ApptViewController {
         return isModifying;
     }
 
-    public void handleSave(Event event, Appointment appt) {
+    public void handleSave(Event event) {
+        appointment.setStart(ZonedDateTime.of(LocalDate.parse(startDate.toString(), State.getFormatDate()), LocalTime.parse(startTime.toString(), State.getFormatTime()), State.getzId()));
+        appointment.setEnd(ZonedDateTime.of(LocalDate.parse(endDate.toString(), State.getFormatDate()), LocalTime.parse(endTime.toString(), State.getFormatTime()), State.getzId()));
+
         try {
-            if (appt.isValidInput() && appt.isNotOverlapping()) {
+            if (appointment.isValidInput() && appointment.isNotOverlapping()) {
                 if (isModifying) {
-                    State.updateAppointment(appt);
+                    State.updateAppointment(appointment);
                 } else {
-                    State.addAppointment(appt);
+                    State.addAppointment(appointment);
                 }
             }
             MainViewController controller = new MainViewController();
@@ -138,6 +142,18 @@ public class ApptViewController {
             svfEnd.setValue(LocalTime.of(17, 00));
         }
     }
+    public void setStartDate(LocalDate newValue){
+        startDate = newValue;
+    };
+    public void setEndDate(LocalDate newValue){
+        endDate = newValue;
+    };
+    public void setStartTime(LocalTime newValue){
+        startTime = newValue;
+    };
+    public void setEndTime(LocalTime newValue){
+        endTime = newValue;
+    };
 
     public SpinnerValueFactory getSvfStart() {
         return svfStart;

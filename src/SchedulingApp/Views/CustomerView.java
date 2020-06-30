@@ -41,6 +41,7 @@ public class CustomerView {
     ComboBox cbCountry = new ComboBox();
     Button btNext = new Button();
     Button btAddAddress = new Button();
+
     public CustomerView(CustomerViewController controller) {
         this.controller = controller;
         tfCustomerName.setText(controller.getCustomer().getCustomerName());
@@ -80,6 +81,9 @@ public class CustomerView {
         bpAddress.setBottom(btNext);
 
         mainAnchorPane.getChildren().add(bpAddress);
+
+        //Fixes the issue after the first submission.
+        controller.getCustomer().customerNameProperty().bind(tfCustomerName.textProperty());
     }
 
     public void setupButtons() {

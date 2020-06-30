@@ -45,6 +45,7 @@ public class ApptView {
 
     public ApptView(ApptViewController controller) {
         this.controller = controller;
+        setUIListeners();
         setupTextFields();
         setupButtons();
         setupDatePickers();
@@ -105,6 +106,13 @@ public class ApptView {
             tfType.setText(controller.getAppointment().getType());
             tfUrl.setText(controller.getAppointment().getUrl());
         }
+            controller.getAppointment().titleProperty().bind(tfTitle.textProperty());
+            controller.getAppointment().descriptionProperty().bind(tfDescription.textProperty());
+            controller.getAppointment().locationProperty().bind(tfLocation.textProperty());
+            controller.getAppointment().contactProperty().bind(tfContact.textProperty());
+            controller.getAppointment().typeProperty().bind(tfType.textProperty());
+            controller.getAppointment().urlProperty().bind(tfUrl.textProperty());
+
     }
 
     private void setupButtons() {
@@ -112,14 +120,13 @@ public class ApptView {
 
         btSave.setOnAction((event) -> {
             //TODO: Check order of alerts
-            getApptInfo();
             Alert saveAlert = new Alert(Alert.AlertType.CONFIRMATION);
             saveAlert.setTitle("Save Appointment Modifications");
             saveAlert.setHeaderText("Are you sure you want to save?");
             saveAlert.setContentText("Press OK to save the addition. \nPress Cancel to stay on this screen.");
             saveAlert.showAndWait();
             if (saveAlert.getResult() == ButtonType.OK) {
-                controller.handleSave(event, appt);
+                controller.handleSave(event);
             } else {
                 saveAlert.close();
             }
@@ -146,17 +153,20 @@ public class ApptView {
         endTime.setValueFactory(controller.getSvfEnd());
     }
 
-    public void getApptInfo() {
-        appt.setCustomer(controller.getCustomer());
-        appt.setCustomerId(controller.getCustomer().getCustomerId());
-        appt.setUserId(State.getUser().getUserID());
-        appt.setTitle(tfTitle.getText());
-        appt.setDescription(tfDescription.getText());
-        appt.setLocation(tfLocation.getText());
-        appt.setContact(tfContact.getText());
-        appt.setType(tfType.getText());
-        appt.setUrl(tfUrl.getText());
-        appt.setStart(ZonedDateTime.of(LocalDate.parse(dpStartDate.getValue().toString(), State.getFormatDate()), LocalTime.parse(startTime.getValue().toString(), State.getFormatTime()), State.getzId()));
-        appt.setEnd(ZonedDateTime.of(LocalDate.parse(dpEndDate.getValue().toString(), State.getFormatDate()), LocalTime.parse(endTime.getValue().toString(), State.getFormatTime()), State.getzId()));
+    public void setUIListeners() {
+        dpStartDate.valueProperty().addListener((obs, oldValue, newValue) -> {
+            controller.setStartDate(newValue);
+        });
+        dpStartDate.valueProperty().addListener((obs, oldValue, newValue) -> {
+            controller.setEndDate(newValue);
+        });
+
+        startTime.valueProperty().addListener((obs, oldValue, newValue) ->{
+            controller.setStartTime(newValue);
+        });
+
+        endTime.valueProperty().addListener((obs, oldValue, newValue) ->{
+            controller.setEndTime(newValue);
+        });
     }
 }

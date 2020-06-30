@@ -45,6 +45,9 @@ public class MainViewController {
         filterAppointmentsTimeCustomer();
     }
 
+    /**
+     * sets start of week and hour to zero
+     */
     public void setTimeToStartOfWeek() {
         DayOfWeek dayOfWeek = State.getTime().getDayOfWeek();
         switch (dayOfWeek) {
@@ -77,11 +80,15 @@ public class MainViewController {
                 break;
             }
         }
+        int hour = startOfWeek.getHour();
+        startOfWeek = startOfWeek.minusHours(hour);
     }
 
     public void setTimeToStartOfMonth() {
         int dayOfMonth = State.getTime().getDayOfMonth() - 1;
         startOfMonth = State.getTime().minusDays(dayOfMonth);
+        int hour = startOfWeek.getHour();
+        startOfWeek = startOfWeek.minusHours(hour);
     }
 
     private void setupIsWeekListener() {
@@ -127,7 +134,6 @@ public class MainViewController {
             start = ZonedDateTime.ofInstant(startOfMonth, ZoneOffset.UTC, State.getzId());
             end = start.plusMonths(1);
         }
-
         Predicate<Appointment> startsAfter = i -> i.getStart().isAfter(start);
         Predicate<Appointment> startsBefore = i -> i.getStart().isBefore(end);
         if (customer != null) {
@@ -173,7 +179,7 @@ public class MainViewController {
 
     public void handleForward() {
         if (isWeek.get()) {
-            startOfWeek = startOfWeek.plusDays(7);
+            startOfWeek = startOfWeek.plusWeeks(1);
         } else {
             startOfMonth = startOfMonth.plusMonths(1);
         }
@@ -183,7 +189,7 @@ public class MainViewController {
 
     public void handleBackward() {
         if (isWeek.get()) {
-            startOfWeek = startOfWeek.minusDays(6);
+            startOfWeek = startOfWeek.minusWeeks(1);
         } else {
             startOfMonth = startOfMonth.minusMonths(1);
         }
@@ -222,9 +228,8 @@ public class MainViewController {
     }
 
     public void loadAddAppointmentView(Event event) {
-
-        ApptViewController apptViewController = new ApptViewController(customer,
-                false);
+        if (!(customer == null)) {
+        ApptViewController apptViewController = new ApptViewController(customer);
 
         ApptView apptView = new ApptView(apptViewController);
         Parent addAppointmentViewParent = apptView.getView();
@@ -234,14 +239,19 @@ public class MainViewController {
         winAddProduct.setScene(mainViewScene);
         winAddProduct.centerOnScreen();
         winAddProduct.show();
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Customer not selected");
+            alert.setHeaderText("Error: Customer Not Selected");
+            alert.setContentText("Please Select a Customer");
+            alert.showAndWait();
+        }
 
     }
 
     public void loadModifyAppointmentView(Event event) {
         if (!(appointment == null)) {
-            ApptViewController apptViewController = new ApptViewController(customer,
-                    appointment,
-                    true);
+            ApptViewController apptViewController = new ApptViewController(appointment);
 
             ApptView apptView = new ApptView(apptViewController);
             Parent addAppointmentViewParent = apptView.getView();

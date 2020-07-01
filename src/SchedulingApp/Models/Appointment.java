@@ -223,6 +223,7 @@ public class Appointment {
 
 
     public boolean isNotOverlapping() throws OverlappingAppointmentException {
+    //switch this to a filter that exculeds the appointmentId
         ObservableList<Appointment> overlappingAppt = DataBaseManager.getOverlappingAppts(this.start.toLocalDateTime(), this.end.toLocalDateTime());
         if (overlappingAppt.size() > 1) {
             throw new OverlappingAppointmentException("An appointment cannot be scheduled at the same time as another appointment!");

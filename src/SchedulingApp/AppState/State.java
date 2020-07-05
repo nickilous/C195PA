@@ -336,10 +336,10 @@ public class State {
                 appointment.setDescription(rs.getString("description"));
 
 
-                LocalDateTime startUTC = rs.getTimestamp("start").toLocalDateTime();
-                LocalDateTime endUTC = rs.getTimestamp("end").toLocalDateTime();
-                ZonedDateTime startLocal = ZonedDateTime.ofInstant(startUTC.toInstant(ZoneOffset.UTC), zId);
-                ZonedDateTime endLocal = ZonedDateTime.ofInstant(endUTC.toInstant(ZoneOffset.UTC), zId);
+                LocalDateTime start = rs.getTimestamp("start").toLocalDateTime();
+                LocalDateTime end = rs.getTimestamp("end").toLocalDateTime();
+                ZonedDateTime startLocal = start.atZone(zId);
+                ZonedDateTime endLocal = end.atZone(zId);
 
                 appointment.setStart(startLocal);
                 appointment.setEnd(endLocal);

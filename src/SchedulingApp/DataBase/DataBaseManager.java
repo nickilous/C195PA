@@ -333,8 +333,8 @@ public class DataBaseManager {
             pst.setObject(7, appt.getType());
             pst.setObject(8, appt.getUrl());
 
-            ZonedDateTime startZDT = appt.getStart().withZoneSameInstant(ZoneOffset.UTC);
-            ZonedDateTime endZDT = appt.getEnd().withZoneSameInstant(ZoneOffset.UTC);
+            ZonedDateTime startZDT = appt.getStart().withZoneSameLocal(ZoneOffset.UTC);
+            ZonedDateTime endZDT = appt.getEnd().withZoneSameLocal(ZoneOffset.UTC);
             pst.setTimestamp(9, Timestamp.valueOf(startZDT.toLocalDateTime()));
             pst.setTimestamp(10, Timestamp.valueOf(endZDT.toLocalDateTime()));
 

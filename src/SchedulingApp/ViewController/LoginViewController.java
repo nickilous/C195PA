@@ -34,7 +34,6 @@ public class LoginViewController {
              */
             new Thread(() -> {
                 State.loadAppointments(user);
-                State.loadUpComingAppointments(user);
                 State.logInAppointmentNotification();
                 State.addListListeners();
             }).start();

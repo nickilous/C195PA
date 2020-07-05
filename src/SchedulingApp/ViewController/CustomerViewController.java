@@ -37,6 +37,7 @@ public class CustomerViewController {
     private Country selectedCountry;
 
     public CustomerViewController() {
+        customer.setCustomerId(State.getNextCustomerId());
     }
     public CustomerViewController(Customer customer) {
         isModifying = true;
@@ -179,6 +180,7 @@ public class CustomerViewController {
     public void handleAddAddress(Address address) {
         try {
             Address.isAddressValid(address);
+            address.setAddressId(State.getNextAddressId());
             address.setCityId(selectedCity.getCityId());
             address.setCity(selectedCity.getCity());
             address.setCountryId(selectedCountry.getCountryId());

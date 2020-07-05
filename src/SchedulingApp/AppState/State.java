@@ -27,6 +27,10 @@ public class State {
     private static final ZoneId zId = ZoneId.systemDefault();
     private static final DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter formatTime = DateTimeFormatter.ofPattern("HH:mm");
+    //Variables to hold the next available ids
+    private static int nextAppointmentId = 0;
+    private static int nextCustomerId = 0;
+    private static int nextAddressId = 0;
     //Arrays holding app required data
     private static final ObservableList<Appointment> appointments = FXCollections.observableArrayList();
     private static final ObservableList<Appointment> upComingAppointments = FXCollections.observableArrayList();
@@ -78,6 +82,18 @@ public class State {
 
     public static void setSelectedLanguage(Locale selectedLanguage) {
         State.selectedLanguage = selectedLanguage;
+    }
+
+    public static int getNextAppointmentId() {
+        return nextAppointmentId;
+    }
+
+    public static int getNextCustomerId() {
+        return nextCustomerId;
+    }
+
+    public static int getNextAddressId() {
+        return nextAddressId;
     }
 
     public static ObservableList<Appointment> getAppointments() {
@@ -191,6 +207,7 @@ public class State {
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
+        nextCustomerId = DataBaseManager.getStartingIdForTable("customer");
 
         rs = DataBaseManager.getAllInActiveCustomerData();
         try {
@@ -250,6 +267,7 @@ public class State {
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
+        nextAddressId = DataBaseManager.getStartingIdForTable("address");
     }
 
     public static void loadCountries() {
@@ -294,42 +312,15 @@ public class State {
                 appointment.setLocation(rs.getString("location"));
                 appointment.setUserId(rs.getInt("userId"));
                 appointments.add(appointment);
+                System.out.println("Loading Appointment: " + appointment.getTitle());
+                System.out.println("Appointment Id: " + appointment.getAppointmentId());
+                System.out.println("Appointment Start: " + appointment.getStart());
+                System.out.println("Appointment End: " + appointment.getEnd());
             }
         } catch (SQLException ex) {
 
         }
-    }
-
-    public static void loadUpComingAppointments(User user) {
-        ResultSet rs = DataBaseManager.getUpcomingAppt(user);
-        try {
-            while (rs.next()) {
-                Appointment appointment = new Appointment();
-                appointment.setAppointmentId(rs.getInt("appointmentId"));
-                appointment.setTitle(rs.getString("title"));
-                appointment.setCustomerId(rs.getInt("customerId"));
-                appointment.setDescription(rs.getString("description"));
-
-
-                LocalDateTime startUTC = rs.getTimestamp("start").toLocalDateTime();
-                LocalDateTime endUTC = rs.getTimestamp("end").toLocalDateTime();
-                ZonedDateTime startLocal = ZonedDateTime.ofInstant(startUTC.toInstant(ZoneOffset.UTC), zId);
-                ZonedDateTime endLocal = ZonedDateTime.ofInstant(endUTC.toInstant(ZoneOffset.UTC), zId);
-
-                appointment.setStart(startLocal);
-                appointment.setEnd(endLocal);
-
-
-                appointment.setContact(rs.getString("contact"));
-                appointment.setType(rs.getString("type"));
-                appointment.setUrl(rs.getString("url"));
-                appointment.setLocation(rs.getString("location"));
-                appointment.setUserId(rs.getInt("userId"));
-                upComingAppointments.add(appointment);
-            }
-        } catch (SQLException ex) {
-
-        }
+        nextAppointmentId = DataBaseManager.getStartingIdForTable("appointment");
     }
 
     //functions specifically for reports
@@ -360,6 +351,10 @@ public class State {
                 appointment.setLocation(rs.getString("location"));
                 appointment.setUserId(rs.getInt("userId"));
                 appointments.add(appointment);
+                System.out.println("Loading Appointment: " + appointment.getTitle() + "\n");
+                System.out.println("Appointment Id: " + appointment.getAppointmentId() + "\n");
+                System.out.println("Appointment Start: " + appointment.getStart() + "\n");
+                System.out.println("Appointment End: " + appointment.getEnd() + "\n");
             }
         } catch (SQLException ex) {
 
@@ -409,7 +404,9 @@ public class State {
      * Generates required notifications
      */
     public static void logInAppointmentNotification() {
-        // Checks to see if the main screen has already been opened during this session
+        FilteredList<Appointment> upComingAppointments = new FilteredList<>(appointments,
+                a -> (a.getStart().isAfter(ZonedDateTime.now(State.getzId())) && a.getStart().isBefore(ZonedDateTime.now(State.getzId()).plusMinutes(15))));
+
         if (!notificationsShown) {
             for (Appointment appointment : upComingAppointments) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -440,6 +437,7 @@ public class State {
                         System.out.println("Saving address: " + addedAddress.getAddress());
                         int dbId = DataBaseManager.saveAddress(addedAddress);
                         addedAddress.setAddressId(dbId);
+                        nextAddressId = DataBaseManager.getStartingIdForTable("address");
                     }
                 } else if(change.wasRemoved()) {
                     for (Address removedAddress : change.getRemoved()) {
@@ -473,6 +471,7 @@ public class State {
                                 System.out.println("Saving customer: " + addedCustomer.getCustomerName());
                                 int dbId = DataBaseManager.saveCustomer(addedCustomer);
                                 addedCustomer.setCustomerId(dbId);
+                                nextCustomerId = DataBaseManager.getStartingIdForTable("customer");
                             }
                         } else if(change.wasRemoved()) {
                             for (Customer removedCustomer : change.getRemoved()) {
@@ -489,12 +488,18 @@ public class State {
                 if (change.wasAdded()) {
                     for (Appointment addedAppointment : change.getAddedSubList()) {
                         System.out.println("Saving appointment: " + addedAppointment.getTitle());
-                        int dbId = DataBaseManager.saveAppointment(addedAppointment);
-                        addedAppointment.setAppointmentId(dbId);
+                        DataBaseManager.saveAppointment(addedAppointment);
+                        nextAppointmentId = DataBaseManager.getStartingIdForTable("appointment");
+                        System.out.println("Appointment Id: " + addedAppointment.getAppointmentId());
+                        System.out.println("Appointment Start: " + addedAppointment.getStart());
+                        System.out.println("Appointment End: " + addedAppointment.getEnd());
                     }
                 } else if (change.wasRemoved()) {
                     for (Appointment removedAppointment : change.getRemoved()) {
                         System.out.println("Removing appointment: " + removedAppointment.getTitle());
+                        System.out.println("Appointment Id: " + removedAppointment.getAppointmentId());
+                        System.out.println("Appointment Start: " + removedAppointment.getStart());
+                        System.out.println("Appointment End: " + removedAppointment.getEnd());
                         DataBaseManager.deleteAppointment(removedAppointment);
                     }
                 }

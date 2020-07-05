@@ -70,6 +70,7 @@ public class ApptViewController {
 
     public ApptViewController(Customer customer) {
         this.appointment = new Appointment();
+        appointment.setAppointmentId(State.getNextAppointmentId());
         appointment.setCustomerId(customer.getCustomerId());
         this.isModifying = false;
         setDateTime();

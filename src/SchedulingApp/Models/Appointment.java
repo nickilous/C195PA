@@ -1,5 +1,6 @@
 package SchedulingApp.Models;
 
+import SchedulingApp.AppState.State;
 import SchedulingApp.DataBase.DataBaseManager;
 import SchedulingApp.Exceptions.InvalidAppointmentException;
 import SchedulingApp.Exceptions.InvalidTimeAppointmentException;
@@ -9,6 +10,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -17,6 +19,7 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.function.Predicate;
 
 public class Appointment {
     private IntegerProperty appointmentId = new SimpleIntegerProperty();
@@ -224,9 +227,33 @@ public class Appointment {
 
     public boolean isNotOverlapping() throws OverlappingAppointmentException {
     //switch this to a filter that exculeds the appointmentId
-        ObservableList<Appointment> overlappingAppt = DataBaseManager.getOverlappingAppts(this.start.toLocalDateTime(), this.end.toLocalDateTime());
-        if (overlappingAppt.size() > 1) {
-            throw new OverlappingAppointmentException("An appointment cannot be scheduled at the same time as another appointment!");
+        FilteredList<Appointment> overLappingAppt = new FilteredList<>(State.getAppointments());
+
+        Predicate<Appointment> ignoreCurrent = i -> (i.getAppointmentId() != this.appointmentId.get());
+
+        overLappingAppt.setPredicate(ignoreCurrent);
+
+        for(Appointment appointment : overLappingAppt)
+        {
+            if (this.start.isEqual(appointment.getStart())){
+                throw new OverlappingAppointmentException("An appointment cannot have the same start time as another");
+            }
+            if(this.end.isEqual(appointment.getEnd())){
+                throw new OverlappingAppointmentException("An appointment cannot have the same end time as another");
+            }
+            if(this.start.isAfter(appointment.getStart()) && this.start.isBefore(appointment.getEnd())){
+                throw new OverlappingAppointmentException("An appointment cannot have a start time during another appointment between " +
+                        appointment.getStart().toString() + " and " + appointment.getEnd().toString());
+            }
+            if(this.end.isAfter(appointment.getStart()) && this.end.isBefore(appointment.getEnd())){
+                throw new OverlappingAppointmentException("An appointment cannot have an end time during another appointment between  " +
+                        appointment.getStart().toString() + " and " + appointment.getEnd().toString());
+            }
+            if(appointment.getStart().isAfter(this.start) && appointment.getEnd().isBefore(this.end)){
+                throw  new OverlappingAppointmentException("There is an appointment scheduled during this appointment with \n" +
+                        "Start Time: " + appointment.getStart().toString() + "\n" +
+                        "End Time: " + appointment.getEnd().toString());
+            }
         }
         return true;
     }

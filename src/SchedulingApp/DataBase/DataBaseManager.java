@@ -283,7 +283,7 @@ public class DataBaseManager {
     public static int saveAddress(Address address){
         int nextId = 0;
         String columnsToSave = "(address, address2, cityId, createDate, createdBy, lastUpdate, lastUpdateBy, phone, postalCode)";
-        String dataToSave = "(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String dataToSave = "(?, ?, ?, NOW(), ?, NOW(), ?, ?, ?)";
         try{
             PreparedStatement pst = DBConnection.getConnection().prepareStatement( INSERT + ADDRESS +
                     columnsToSave +
@@ -292,12 +292,10 @@ public class DataBaseManager {
             pst.setString(1, address.getAddress());
             pst.setString(2, address.getAddress2());
             pst.setInt(3, address.getCityId());
-            pst.setDate(4, java.sql.Date.valueOf(java.time.LocalDate.now()));
+            pst.setString(4, State.getUser().getUserName());
             pst.setString(5, State.getUser().getUserName());
-            pst.setTimestamp(6, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
-            pst.setString(7, State.getUser().getUserName());
-            pst.setString(8, address.getPhone());
-            pst.setString(9, address.getPostalCode());
+            pst.setString(6, address.getPhone());
+            pst.setString(7, address.getPostalCode());
             pst.executeUpdate();
             nextId = getId(pst);
         } catch (SQLException ex){

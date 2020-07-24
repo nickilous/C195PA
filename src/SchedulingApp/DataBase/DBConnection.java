@@ -16,8 +16,9 @@ public class DBConnection {
         try {
             Class.forName(DRIVER);
             conn = (Connection) DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+
             //Lambda expression that prints to the console when user logins
-            new Thread(() -> System.out.println("Connection sucessful!")).start();
+            new Thread(() -> System.out.println("Connection successful!")).start();
         } catch (ClassNotFoundException | SQLException exception){
             System.out.println("Error creating DB connection.");
         }

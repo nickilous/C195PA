@@ -28,15 +28,9 @@ public class LoginViewController {
             User user = new User(userName, password);
             DataBaseManager.validateLogin(user);
             State.setUser(user);
-            /**
-             * Lambda: Loads the appoinments in a different thread this allows the main thread to keep loading
-             * while the appointments are loading.
-             */
-            new Thread(() -> {
-                State.loadAppointments(user);
-                State.logInAppointmentNotification();
-                State.addListListeners();
-            }).start();
+            State.loadAppointments(user);
+            State.logInAppointmentNotification();
+            State.addListListeners();
         } catch (UserFieldsEmptyException | UserNotValidException ex) {
             loginViewLogger.log(Level.INFO, ex.getMessage());
             throw ex;

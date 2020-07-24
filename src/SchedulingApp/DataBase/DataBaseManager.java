@@ -222,7 +222,7 @@ public class DataBaseManager {
             PreparedStatement pst = DBConnection.getConnection().prepareStatement( INSERT + ADDRESS +
                     columnsToSave +
                     "VAlUES" +
-                    dataToSave);
+                    dataToSave, Statement.RETURN_GENERATED_KEYS);
             pst.setString(1, address.getAddress());
             pst.setString(2, address.getAddress2());
             pst.setInt(3, address.getCityId());

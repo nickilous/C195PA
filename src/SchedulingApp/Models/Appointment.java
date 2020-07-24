@@ -207,7 +207,7 @@ public class Appointment {
         int weekDay = apptStartDate.getDayOfWeek().getValue();
 
         if (!apptStartDate.isEqual(apptEndDate)) {
-            throw new InvalidTimeAppointmentException("An appoinment can only be a single day!");
+            throw new InvalidTimeAppointmentException("An appointment can only be a single day!");
         }
         if (weekDay == 6 || weekDay == 7) {
             throw new InvalidTimeAppointmentException("An appointment can only be scheduled on weekdays!");
@@ -220,6 +220,9 @@ public class Appointment {
         }
         if (apptStartDate.isBefore(LocalDate.now()) || apptStartTime.isBefore(LocalTime.MIDNIGHT)) {
             throw new InvalidTimeAppointmentException("An appointment cannot be scheduled in the past!");
+        }
+        if (this.end.isBefore(this.start)){
+            throw new InvalidTimeAppointmentException("An appointment cannot end before it starts");
         }
         return true;
     }

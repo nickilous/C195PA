@@ -16,6 +16,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.function.Predicate;
 
 /**
  * This should be the only place that Database manager is accessed
@@ -404,9 +405,13 @@ public class State {
      * Generates required notifications
      */
     public static void logInAppointmentNotification() {
-        FilteredList<Appointment> upComingAppointments = new FilteredList<>(appointments,
-                a -> (a.getStart().isAfter(ZonedDateTime.now(State.getzId())) && a.getStart().isBefore(ZonedDateTime.now(State.getzId()).plusMinutes(15))));
-
+        ZonedDateTime zonedNow = ZonedDateTime.now(State.zId);
+        ZonedDateTime zonedPlus = ZonedDateTime.now(State.zId).plusMinutes(15);
+        FilteredList<Appointment> upComingAppointments = new FilteredList<>(appointments);
+        Predicate<Appointment> startsAfter = i -> i.getStart().isAfter(zonedNow);
+        Predicate<Appointment> startsBefore = i -> i.getStart().isBefore(zonedPlus);
+        Predicate<Appointment> filter = startsAfter.and(startsBefore);
+        upComingAppointments.setPredicate(filter);
         if (!notificationsShown) {
             for (Appointment appointment : upComingAppointments) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
